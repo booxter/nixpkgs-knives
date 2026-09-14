@@ -22,6 +22,7 @@ let
     ./cases/host-data-scope-and-safety.nix
     ./cases/host-data-write-text.nix
     ./cases/node-config-packages-direct.nix
+    ./cases/node-config-packages-local-pkgs.nix
     ./cases/node-package-meta-existing-config.nix
     ./cases/node-package-meta-scope-and-safety.nix
     ./cases/node-package-meta-shapes.nix

@@ -1,0 +1,52 @@
+id: nixos-test-node-module-function
+language: Nix
+# A function used directly as a node or container module.
+rule:
+  all:
+    - kind: function_expression
+    - not:
+        matches: nixos-test-outer-function
+    - has:
+        all:
+          - kind: formals
+          - has:
+              all:
+                - kind: formal
+                - has:
+                    all:
+                      - kind: identifier
+                      - regex: "^config$"
+                    stopBy: neighbor
+              stopBy: neighbor
+        stopBy: neighbor
+    - not:
+        has:
+          all:
+            - kind: formals
+            - has:
+                all:
+                  - kind: formal
+                  - has:
+                      all:
+                        - kind: identifier
+                        - regex: "^pkgs$"
+                      stopBy: neighbor
+                stopBy: neighbor
+          stopBy: neighbor
+    - inside:
+        all:
+          - kind: binding
+          - any:
+              - matches: nixos-test-node-config-binding
+              - inside:
+                  all:
+                    - kind: binding_set
+                    - inside:
+                        all:
+                          - kind: attrset_expression
+                          - inside:
+                              matches: nixos-test-node-config-binding
+                              stopBy: neighbor
+                        stopBy: neighbor
+                  stopBy: neighbor
+        stopBy: neighbor

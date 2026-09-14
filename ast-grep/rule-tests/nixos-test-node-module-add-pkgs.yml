@@ -1,0 +1,12 @@
+id: nixos-test-node-module-add-pkgs
+valid:
+  - "{ pkgs, ... }: { nodes.machine = { config, ... }: { services.foo.enable = true; }; }"
+  - "{ pkgs, ... }: { nodes.machine = { config, pkgs, ... }: { environment.systemPackages = [ pkgs.hello ]; }; }"
+  - "{ pkgs, ... }: { nodes.machine = { config, ... }: { pkgs.hello = true; }; }"
+  - "{ pkgs, ... }: { nodes.machine = { ... }: { helper = { config, ... }: pkgs.hello; }; }"
+  - "{ pkgs, ... }: { nodes.machine = { config, ... }: { helper = { pkgs, ... }: pkgs.hello; }; }"
+  - "{ pkgs, ... }: { testScript = { config, ... }: pkgs.hello; }"
+invalid:
+  - "{ pkgs, ... }: { nodes.machine = { config, ... }: { environment.systemPackages = [ pkgs.hello ]; }; }"
+  - "{ pkgs, ... }: { nodes = { machine = { config, ... }: { environment.systemPackages = [ pkgs.hello ]; }; }; }"
+  - "{ pkgs, ... }: { containers.machine = { config, ... }: { environment.systemPackages = [ pkgs.hello ]; }; }"

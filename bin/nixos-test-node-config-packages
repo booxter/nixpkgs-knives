@@ -14,14 +14,26 @@ is_candidate() {
   nixos_test_is_named "$file" || return
   nixos_test_matches_rule nixos-test-root-open-function "$file" || return
   nixos_test_matches_rule nixos-test-root-plain-pkgs-formal "$file" || return
-  nixos_test_matches_rule nixos-test-node-config-pkgs "$file"
+  nixos_test_matches_rule nixos-test-node-config-pkgs "$file" ||
+    nixos_test_matches_rule nixos-test-node-module-add-pkgs "$file"
 }
 
 migrate_file() {
   local file="$1"
+  local rewrites_root_pkgs=false
 
-  nixos_test_apply_rule nixos-test-node-config-pkgs "$file"
-  nixos_test_reconcile_root_pkgs "$file" config
+  if nixos_test_matches_rule nixos-test-node-config-pkgs "$file"; then
+    rewrites_root_pkgs=true
+    nixos_test_apply_rule nixos-test-node-config-pkgs "$file"
+  fi
+
+  nixos_test_apply_rule nixos-test-node-module-add-pkgs "$file"
+
+  if [[ "$rewrites_root_pkgs" == true ]]; then
+    nixos_test_reconcile_root_pkgs "$file" config
+  else
+    nixos_test_remove_unused_root_pkgs "$file"
+  fi
 }
 
 nixos_test_run is_candidate migrate_file

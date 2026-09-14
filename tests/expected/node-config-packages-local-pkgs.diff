@@ -1,0 +1,19 @@
+--- a/nixos/tests/acme/caddy.nix
++++ b/nixos/tests/acme/caddy.nix
+@@ -1,7 +1,6 @@
+ {
+   config,
+   lib,
+-  pkgs,
+   ...
+ }:
+ let
+@@ -25,7 +24,7 @@
+       };
+ 
+     caddy =
+-      { nodes, config, ... }:
++      { nodes, config, pkgs, ... }:
+       let
+         fqdn = config.networking.fqdn;
+       in

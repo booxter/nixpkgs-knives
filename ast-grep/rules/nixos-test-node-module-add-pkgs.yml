@@ -1,0 +1,32 @@
+id: nixos-test-node-module-add-pkgs
+language: Nix
+# Add pkgs to a node module that currently captures outer pkgs.
+rule:
+  all:
+    - kind: identifier
+    - regex: "^config$"
+    - inside:
+        kind: formal
+        stopBy: neighbor
+    - inside:
+        all:
+          - matches: nixos-test-node-module-function
+          - has:
+              all:
+                - kind: identifier
+                - regex: "^pkgs$"
+                - not:
+                    inside:
+                      kind: formal
+                      stopBy: neighbor
+                - not:
+                    inside:
+                      kind: attrpath
+                      stopBy: neighbor
+                - not:
+                    inside:
+                      matches: nixos-test-pkgs-shadowing-function
+                      stopBy: end
+              stopBy: end
+        stopBy: end
+fix: config, pkgs
