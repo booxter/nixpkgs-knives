@@ -21,6 +21,9 @@ let
     ./cases/host-data-producers.nix
     ./cases/host-data-scope-and-safety.nix
     ./cases/host-data-write-text.nix
+    ./cases/node-package-meta-existing-config.nix
+    ./cases/node-package-meta-scope-and-safety.nix
+    ./cases/node-package-meta-shapes.nix
     ./cases/system-packages-ayatana-indicators.nix
     ./cases/system-packages-ax25.nix
     ./cases/system-packages-man.nix

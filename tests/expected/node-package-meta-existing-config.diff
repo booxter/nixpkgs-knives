@@ -1,0 +1,13 @@
+--- a/nixos/tests/omnom/default.nix
++++ b/nixos/tests/omnom/default.nix
+@@ -1,8 +1,8 @@
+-{ config, pkgs, ... }:
++{ config, ... }:
+ {
+   name = "Basic Omnom Test";
+   meta = {
+-    inherit (pkgs.omnom.meta) maintainers;
++    inherit (config.node.pkgs.omnom.meta) maintainers;
+   };
+ 
+   nodes = {

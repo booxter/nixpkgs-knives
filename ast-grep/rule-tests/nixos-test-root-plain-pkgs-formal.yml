@@ -1,0 +1,7 @@
+id: nixos-test-root-plain-pkgs-formal
+valid:
+  - "{ pkgs ? import <nixpkgs> { }, ... }: pkgs"
+  - "{ value = ({ pkgs, ... }: pkgs); }"
+invalid:
+  - "{ pkgs, ... }: pkgs"
+  - "{ lib, pkgs, ... }: lib"

@@ -1,0 +1,10 @@
+id: nixos-test-node-package-meta-pkgs
+valid:
+  - "{ pkgs, ... }: pkgs.hello"
+  - "{ pkgs, ... }: pkgs.hello.version"
+  - "{ pkgs, ... }: ({ pkgs, ... }: pkgs.hello.meta)"
+  - "{ value = pkgs.hello.meta; }"
+invalid:
+  - "{ pkgs, ... }: pkgs.hello.meta"
+  - "{ pkgs, ... }: pkgs.hello.meta.maintainers"
+  - "{ pkgs, ... }: ({ lib, ... }: pkgs.hello.meta)"

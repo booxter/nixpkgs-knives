@@ -1,0 +1,13 @@
+--- a/nixos/tests/bcachefs.nix
++++ b/nixos/tests/bcachefs.nix
+@@ -1,8 +1,8 @@
+-{ pkgs, ... }:
++{ config, ... }:
+ {
+   name = "bcachefs";
+   meta = {
+-    inherit (pkgs.bcachefs-tools.meta) maintainers;
++    inherit (config.node.pkgs.bcachefs-tools.meta) maintainers;
+   };
+ 
+   nodes.machine =

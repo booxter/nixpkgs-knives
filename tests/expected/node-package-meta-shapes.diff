@@ -1,0 +1,39 @@
+--- a/nixos/tests/atuin-programs.nix
++++ b/nixos/tests/atuin-programs.nix
+@@ -1,7 +1,7 @@
+-{ pkgs, ... }:
++{ config, ... }:
+ {
+   name = "atuin";
+-  meta.maintainers = pkgs.atuin.meta.maintainers;
++  meta.maintainers = config.node.pkgs.atuin.meta.maintainers;
+ 
+   nodes.machine = {
+     programs = {
+--- a/nixos/tests/broadcast-box.nix
++++ b/nixos/tests/broadcast-box.nix
+@@ -1,7 +1,7 @@
+-{ pkgs, ... }:
++{ config, ... }:
+ {
+   name = "broadcast-box";
+-  meta = { inherit (pkgs.broadcast-box.meta) maintainers; };
++  meta = { inherit (config.node.pkgs.broadcast-box.meta) maintainers; };
+ 
+   nodes.machine = {
+     services.broadcast-box = {
+--- a/nixos/tests/pulseaudio-tcp.nix
++++ b/nixos/tests/pulseaudio-tcp.nix
+@@ -1,10 +1,10 @@
+-{ pkgs, lib, ... }:
++{ config, lib, ... }:
+ 
+ {
+   name = "pulseaudio-tcp";
+ 
+   meta.maintainers =
+-    pkgs.pulseaudio.meta.maintainers
++    config.node.pkgs.pulseaudio.meta.maintainers
+     ++ (with lib.maintainers; [
+       aleksana
+       doronbehar

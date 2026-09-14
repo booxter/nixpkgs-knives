@@ -1,0 +1,14 @@
+id: nixos-test-root-plain-pkgs-formal
+language: Nix
+# A non-defaulted pkgs formal in the outer function's argument set.
+rule:
+  all:
+    - kind: formal
+    - regex: "^pkgs$"
+    - inside:
+        all:
+          - kind: formals
+          - inside:
+              matches: nixos-test-outer-function
+              stopBy: neighbor
+        stopBy: neighbor
