@@ -38,6 +38,7 @@ let
 in
 {
   ast-grep-rules = ruleTests;
+  cut-dispatcher = pkgs.callPackage ./cut.nix { };
 }
 // builtins.listToAttrs (
   map (case: {

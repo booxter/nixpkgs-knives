@@ -28,7 +28,8 @@ stdenvNoCC.mkDerivation {
     patchShebangs "$out/bin" "$out/share/nixpkgs-knives/bin"
 
     wrapProgram "$out/bin/cut" \
-      --set NIXPKGS_KNIVES_DIR "$out/share/nixpkgs-knives/bin"
+      --set NIXPKGS_KNIVES_DIR "$out/share/nixpkgs-knives/bin" \
+      --prefix PATH : ${lib.makeBinPath [ coreutils ]}
 
     for knife in "$out/share/nixpkgs-knives/bin"/*; do
       wrapProgram "$knife" \

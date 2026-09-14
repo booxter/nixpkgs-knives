@@ -256,6 +256,11 @@ nixos_test_run() {
   done
 
   nixos_test_finish
+
+  # Let repeated dispatcher passes know that this knife applied changes.
+  if [[ -n "${NIXPKGS_KNIVES_CHANGED_FILE:-}" ]]; then
+    touch "$NIXPKGS_KNIVES_CHANGED_FILE"
+  fi
 }
 
 nixos_test_finish() {
