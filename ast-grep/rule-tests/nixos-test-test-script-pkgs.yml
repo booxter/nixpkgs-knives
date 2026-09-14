@@ -1,0 +1,10 @@
+id: nixos-test-test-script-pkgs
+valid:
+  - "{ pkgs, ... }: { nodes.machine.environment.systemPackages = [ pkgs.hello ]; testScript = \"pass\"; }"
+  - "{ pkgs, ... }: { testScript = { pkgs, ... }: \"${pkgs.hello}\"; }"
+  - "{ pkgs, ... }: { testScript = \"${builtins.toString { pkgs.hello = true; }}\"; }"
+  - "{ pkgs, ... }: { nodes.machine.testScript = \"${pkgs.hello}\"; }"
+invalid:
+  - "{ pkgs, ... }: { testScript = \"${pkgs.hello}\"; }"
+  - "{ pkgs, ... }: { testScript = { nodes, ... }: \"${pkgs.hello}\"; }"
+  - "{ pkgs, ... }: { testScript = let value = pkgs.hello; in \"${value}\"; }"

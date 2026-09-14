@@ -1,0 +1,20 @@
+id: nixos-test-test-script-bind-node-pkgs
+language: Nix
+rule:
+  all:
+    - pattern:
+        context: "{ testScript = $SCRIPT; }"
+        selector: binding
+    - inside:
+        matches: nixos-test-outer-function
+        stopBy: end
+    - not:
+        inside:
+          kind: binding
+          stopBy: end
+fix: |-
+  testScript =
+    let
+      pkgs = config.node.pkgs;
+    in
+    $SCRIPT;

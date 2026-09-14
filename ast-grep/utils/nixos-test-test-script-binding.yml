@@ -1,0 +1,15 @@
+id: nixos-test-test-script-binding
+language: Nix
+# The testScript binding in the outer test module.
+rule:
+  all:
+    - pattern:
+        context: "{ testScript = $SCRIPT; }"
+        selector: binding
+    - inside:
+        matches: nixos-test-outer-function
+        stopBy: end
+    - not:
+        inside:
+          kind: binding
+          stopBy: end

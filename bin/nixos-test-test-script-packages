@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+knife_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/nixos-test.sh
+source "$knife_dir/../lib/nixos-test.sh"
+
+nixos_test_init
+
+classify_test_script_pkgs() {
+  local file="$1"
+  local matches script
+  local line
+  local target=
+  local line_target
+  local line_is_node
+  local line_is_host
+  local has_host_cmd=false
+
+  matches=$(
+    nixos_test_scan_rule nixos-test-test-script-pkgs \
+      --json=stream \
+      "$file"
+  )
+  [[ -n "$matches" ]] || return 1
+
+  script=$(
+    nixos_test_scan_rule nixos-test-test-script \
+      --json=stream \
+      "$file" |
+      jq -r '.text'
+  )
+
+  # cmd(...) is a host helper only when it is backed by subprocess locally.
+  if grep -Eq '^[[:space:]]*def[[:space:]]+cmd[[:space:]]*\(' <<< "$script" &&
+    grep -Eq 'subprocess[.](run|Popen|call|check_call|check_output)[[:space:]]*\(' <<< "$script"; then
+    has_host_cmd=true
+  fi
+
+  while IFS= read -r line; do
+    line_target=
+    line_is_node=false
+    line_is_host=false
+
+    if grep -Eq '[[:alnum:]_]+[.](succeed|fail|execute|wait_until_succeeds|wait_until_fails|wait_for_window|wait_for_text|wait_for_console_text)[[:space:]]*\(' <<< "$line"; then
+      line_is_node=true
+    fi
+    if grep -Eq '(subprocess[.](run|Popen|call|check_call|check_output)|os[.](system|popen))[[:space:]]*\(' <<< "$line"; then
+      line_is_host=true
+    elif [[ "$has_host_cmd" == true ]] && grep -Eq '\bcmd[[:space:]]*\(' <<< "$line"; then
+      line_is_host=true
+    fi
+
+    if [[ "$line_is_node" == true && "$line_is_host" == false ]]; then
+      line_target=node
+    elif [[ "$line_is_node" == false && "$line_is_host" == true ]]; then
+      line_target=host
+    else
+      return 1
+    fi
+
+    if [[ -n "$target" && "$target" != "$line_target" ]]; then
+      return 1
+    fi
+    target="$line_target"
+  done < <(jq -r '.lines' <<< "$matches")
+
+  printf '%s\n' "$target"
+}
+
+is_candidate() {
+  local file="$1"
+  local binding_count
+  local target
+
+  nixos_test_is_simple_test "$file" || return
+  nixos_test_matches_rule nixos-test-root-open-function "$file" || return
+  nixos_test_matches_rule nixos-test-root-plain-pkgs-formal "$file" || return
+
+  binding_count=$(nixos_test_rule_match_count nixos-test-test-script "$file")
+  [[ "$binding_count" -eq 1 ]] || return
+  ! nixos_test_matches_rule nixos-test-test-script-local-pkgs "$file" || return
+
+  target=$(classify_test_script_pkgs "$file") || return
+  [[ "$target" == node || "$target" == host ]]
+}
+
+migrate_file() {
+  local file="$1"
+  local target
+  local replacement
+  local root_pkgs_uses
+  local test_script_pkgs_uses
+
+  target=$(classify_test_script_pkgs "$file")
+  root_pkgs_uses=$(nixos_test_rule_match_count nixos-test-root-pkgs-use "$file")
+  test_script_pkgs_uses=$(nixos_test_rule_match_count nixos-test-test-script-pkgs "$file")
+
+  case "$target" in
+    node)
+      replacement=config
+      nixos_test_add_root_arg "$file" "$replacement"
+      nixos_test_apply_rule nixos-test-test-script-bind-node-pkgs "$file"
+      ;;
+    host)
+      replacement=hostPkgs
+      nixos_test_add_root_arg "$file" "$replacement"
+      nixos_test_apply_rule nixos-test-test-script-bind-host-pkgs "$file"
+      ;;
+    *)
+      echo "unexpected testScript pkgs target: $target" >&2
+      exit 1
+      ;;
+  esac
+
+  # ast-grep reindents the captured script and pads its otherwise blank lines.
+  perl -pi -e 's/^[ \t]+$//' "$file"
+
+  if [[ "$root_pkgs_uses" -eq "$test_script_pkgs_uses" ]]; then
+    nixos_test_remove_root_pkgs "$file"
+  fi
+}
+
+nixos_test_run is_candidate migrate_file

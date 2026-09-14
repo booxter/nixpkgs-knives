@@ -34,6 +34,7 @@
           pkgs = nixpkgs.legacyPackages.${system};
           cut = self.packages.${system}.cut;
           fixtures = {
+            local = ./tests/fixtures;
             nixpkgs-master-2026-09-12 = inputs.nixpkgs-master-2026-09-12;
           };
         }

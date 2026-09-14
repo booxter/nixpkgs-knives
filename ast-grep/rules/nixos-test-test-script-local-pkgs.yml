@@ -1,0 +1,20 @@
+id: nixos-test-test-script-local-pkgs
+language: Nix
+# A local pkgs formal or binding makes outer-pkgs classification ambiguous.
+rule:
+  any:
+    - all:
+        - kind: identifier
+        - regex: "^pkgs$"
+        - inside:
+            kind: formal
+            stopBy: neighbor
+        - inside:
+            matches: nixos-test-test-script-binding
+            stopBy: end
+    - all:
+        - kind: binding
+        - regex: "(?s)^pkgs\\s*="
+        - inside:
+            matches: nixos-test-test-script-binding
+            stopBy: end

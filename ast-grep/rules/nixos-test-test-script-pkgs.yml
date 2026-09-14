@@ -1,0 +1,25 @@
+id: nixos-test-test-script-pkgs
+language: Nix
+# Uses of outer pkgs in the testScript expression.
+rule:
+  all:
+    - kind: identifier
+    - regex: "^pkgs$"
+    - inside:
+        matches: nixos-test-outer-function
+        stopBy: end
+    - inside:
+        matches: nixos-test-test-script-binding
+        stopBy: end
+    - not:
+        inside:
+          kind: formal
+          stopBy: neighbor
+    - not:
+        inside:
+          kind: attrpath
+          stopBy: neighbor
+    - not:
+        inside:
+          matches: nixos-test-pkgs-shadowing-function
+          stopBy: end

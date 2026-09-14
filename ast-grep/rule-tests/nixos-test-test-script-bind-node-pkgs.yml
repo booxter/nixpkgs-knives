@@ -1,0 +1,5 @@
+id: nixos-test-test-script-bind-node-pkgs
+valid:
+  - "{ pkgs, ... }: { nodes.machine.testScript = \"${pkgs.hello}\"; }"
+invalid:
+  - "{ pkgs, ... }: { testScript = \"${pkgs.hello}\"; }"

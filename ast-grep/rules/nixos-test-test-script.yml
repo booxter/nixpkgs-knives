@@ -1,0 +1,5 @@
+id: nixos-test-test-script
+language: Nix
+# The testScript binding in the outer test module.
+rule:
+  matches: nixos-test-test-script-binding

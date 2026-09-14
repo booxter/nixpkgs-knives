@@ -33,6 +33,8 @@ let
     ./cases/system-packages-man.nix
     ./cases/system-packages-snapcast.nix
     ./cases/system-packages-zfs.nix
+    ./cases/test-script-packages.nix
+    ./cases/test-script-packages-mixed.nix
     ./cases/unused-root-pkgs-clickhouse-ui.nix
     ./cases/unused-root-pkgs-nested-shadow.nix
     ./cases/unused-root-pkgs-safety.nix

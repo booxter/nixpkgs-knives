@@ -1,0 +1,7 @@
+id: nixos-test-test-script-local-pkgs
+valid:
+  - "{ pkgs, ... }: { testScript = \"${pkgs.hello}\"; }"
+  - "{ pkgs, ... }: { nodes.machine = { pkgs = pkgs.hello; }; testScript = \"pass\"; }"
+invalid:
+  - "{ pkgs, ... }: { testScript = { pkgs, ... }: \"${pkgs.hello}\"; }"
+  - "{ pkgs, ... }: { testScript = let pkgs = import <nixpkgs> { }; in \"${pkgs.hello}\"; }"
