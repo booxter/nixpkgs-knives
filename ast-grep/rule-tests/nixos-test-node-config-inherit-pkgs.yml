@@ -1,0 +1,10 @@
+id: nixos-test-node-config-inherit-pkgs
+valid:
+  - "{ pkgs, ... }: { nixpkgs = { inherit pkgs; }; }"
+  - "{ pkgs, ... }: { nodes.machine = { nixpkgs = { inherit config pkgs; }; }; }"
+  - "{ pkgs, ... }: { nodes.machine = { nixpkgs = { inherit (config.node) pkgs; }; }; }"
+  - "{ pkgs, ... }: { nodes.machine = { config, ... }: { nixpkgs = { inherit pkgs; }; }; }"
+  - "{ pkgs, ... }: { nodes.machine = { pkgs, ... }: { nixpkgs = { inherit pkgs; }; }; }"
+invalid:
+  - "{ pkgs, ... }: { nodes.machine = { nixpkgs = { inherit pkgs; }; }; }"
+  - "{ pkgs, ... }: { containers.machine.config = { nixpkgs = { inherit pkgs; }; }; }"

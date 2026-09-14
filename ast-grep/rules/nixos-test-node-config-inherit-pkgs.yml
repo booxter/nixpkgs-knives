@@ -1,21 +1,13 @@
-id: nixos-test-node-config-pkgs
+id: nixos-test-node-config-inherit-pkgs
 language: Nix
-# Outer pkgs used inside a node or container configuration.
+# inherit pkgs; -> pkgs = config.node.pkgs;
 rule:
   all:
-    - kind: identifier
-    - regex: "^pkgs$"
+    - kind: inherit
+    - regex: "^inherit\\s+pkgs\\s*;$"
     - inside:
         matches: nixos-test-outer-function
         stopBy: end
-    - not:
-        inside:
-          kind: attrpath
-          stopBy: neighbor
-    - not:
-        inside:
-          kind: inherited_attrs
-          stopBy: neighbor
     - not:
         inside:
           matches: nixos-test-pkgs-shadowing-function
@@ -27,4 +19,4 @@ rule:
     - inside:
         matches: nixos-test-node-config-binding
         stopBy: end
-fix: config.node.pkgs
+fix: pkgs = config.node.pkgs;

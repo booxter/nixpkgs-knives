@@ -47,3 +47,20 @@
            sshAccess = [
              {
                key = publicKey;
+--- a/nixos/tests/userborn-subids-immutable-etc.nix
++++ b/nixos/tests/userborn-subids-immutable-etc.nix
+@@ -1,4 +1,4 @@
+-{ lib, pkgs, ... }:
++{ lib, config, ... }:
+ 
+ # Immutable /etc, subid files written to passwordFilesLocation and exposed
+ # in /etc via systemd bind mount units over build-time placeholders.
+@@ -49,7 +49,7 @@
+       specialisation.with-bob = {
+         inheritParentConfig = false;
+         configuration = {
+-          nixpkgs = { inherit pkgs; };
++          nixpkgs = { pkgs = config.node.pkgs; };
+           imports = [ common ];
+           users.users = users // {
+             bob.isNormalUser = true;

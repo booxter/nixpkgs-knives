@@ -3,6 +3,7 @@ valid:
   - "{ pkgs, ... }: { environment.systemPackages = [ pkgs.hello ]; }"
   - "{ pkgs, ... }: { nodes.machine = { environment.systemPackages = [ hello ]; }; }"
   - "{ pkgs, ... }: { nodes.machine = { pkgs.hello = true; }; }"
+  - "{ pkgs, ... }: { nodes.machine = { nixpkgs = { inherit pkgs; }; }; }"
   - "{ pkgs, ... }: { nodes.machine = { pkgs, ... }: { environment.systemPackages = [ pkgs.hello ]; }; }"
   - "{ pkgs, ... }: { nodes.machine = { config, ... }: { environment.systemPackages = [ pkgs.hello ]; }; }"
 invalid:

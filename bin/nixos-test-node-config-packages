@@ -15,12 +15,18 @@ is_candidate() {
   nixos_test_matches_rule nixos-test-root-open-function "$file" || return
   nixos_test_matches_rule nixos-test-root-plain-pkgs-formal "$file" || return
   nixos_test_matches_rule nixos-test-node-config-pkgs "$file" ||
+    nixos_test_matches_rule nixos-test-node-config-inherit-pkgs "$file" ||
     nixos_test_matches_rule nixos-test-node-module-add-pkgs "$file"
 }
 
 migrate_file() {
   local file="$1"
   local rewrites_root_pkgs=false
+
+  if nixos_test_matches_rule nixos-test-node-config-inherit-pkgs "$file"; then
+    rewrites_root_pkgs=true
+    nixos_test_apply_rule nixos-test-node-config-inherit-pkgs "$file"
+  fi
 
   if nixos_test_matches_rule nixos-test-node-config-pkgs "$file"; then
     rewrites_root_pkgs=true

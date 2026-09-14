@@ -5,7 +5,8 @@
   files = [
     "nixos/tests/cloudlog.nix"
     "nixos/tests/btrbk.nix"
+    "nixos/tests/userborn-subids-immutable-etc.nix"
   ];
-  expectedCandidates = 2;
+  expectedCandidates = 3;
   expectedDiff = ../expected/node-config-packages-direct.diff;
 }
