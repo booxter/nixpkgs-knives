@@ -3,6 +3,7 @@
 set -euo pipefail
 
 knife_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/nixos-test.sh
 source "$knife_dir/../lib/nixos-test.sh"
 
 nixos_test_init

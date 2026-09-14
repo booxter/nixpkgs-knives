@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ -n "${NIXPKGS_KNIVES_DIR:-}" ]]; then
+  knives_dir="$NIXPKGS_KNIVES_DIR"
+else
+  cut_dir="${BASH_SOURCE[0]%/*}"
+  [[ "$cut_dir" != "${BASH_SOURCE[0]}" ]] || cut_dir=.
+  cut_dir="$(cd -- "$cut_dir" && pwd)"
+  knives_dir="$cut_dir/bin"
+fi
+
+if (( $# == 0 )); then
+  for knife in "$knives_dir"/*; do
+    printf '%s\n' "${knife##*/}"
+  done
+  exit 0
+fi
+
+knife_name="$1"
+shift
+
+case "$knife_name" in
+  */* | "")
+    printf 'Invalid knife name: %s\n' "$knife_name" >&2
+    exit 2
+    ;;
+esac
+
+knife="$knives_dir/$knife_name"
+if [[ ! -x "$knife" ]]; then
+  printf 'Unknown knife: %s\n' "$knife_name" >&2
+  exit 2
+fi
+
+exec "$knife" "$@"

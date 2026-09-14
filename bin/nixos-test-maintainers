@@ -3,6 +3,7 @@
 set -euo pipefail
 
 knife_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/nixos-test.sh
 source "$knife_dir/../lib/nixos-test.sh"
 
 nixos_test_init
@@ -50,6 +51,8 @@ rule:
 '
 
 # Rewrite a selected maintainer first so its final attribute is preserved.
+# $MAINTAINER is an ast-grep metavariable, not a shell variable.
+# shellcheck disable=SC2016
 root_maintainer_member_rule='
 id: root-maintainer-member
 language: nix
