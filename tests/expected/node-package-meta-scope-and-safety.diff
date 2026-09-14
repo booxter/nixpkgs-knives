@@ -11,3 +11,14 @@
    };
  
    nodes.machine =
+--- a/nixos/tests/ringboard.nix
++++ b/nixos/tests/ringboard.nix
+@@ -6,7 +6,7 @@
+ }:
+ {
+   name = "ringboard";
+-  meta.maintainers = pkgs.ringboard.meta.maintainers ++ (with lib.maintainers; [ h7x4 ]);
++  meta.maintainers = config.node.pkgs.ringboard.meta.maintainers ++ (with lib.maintainers; [ h7x4 ]);
+ 
+   nodes.machine = {
+     imports = [

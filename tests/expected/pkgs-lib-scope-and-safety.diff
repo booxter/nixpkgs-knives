@@ -27,3 +27,14 @@
      maintainers = [ mic92 ];
    };
  
+--- a/nixos/tests/android-translation-layer.nix
++++ b/nixos/tests/android-translation-layer.nix
+@@ -8,7 +8,7 @@
+ in
+ {
+   name = "android-translation-layer";
+-  meta.maintainers = with pkgs.lib.maintainers; [ onny ];
++  meta.maintainers = with lib.maintainers; [ onny ];
+ 
+   nodes.machine =
+     { config, pkgs, ... }:

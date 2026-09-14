@@ -6,6 +6,6 @@
     "nixos/tests/bcachefs.nix"
     "nixos/tests/ringboard.nix"
   ];
-  expectedCandidates = 1;
+  expectedCandidates = 2;
   expectedDiff = ../expected/node-package-meta-scope-and-safety.diff;
 }

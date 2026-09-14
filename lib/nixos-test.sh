@@ -225,6 +225,19 @@ nixos_test_remove_unused_root_pkgs() {
   fi
 }
 
+nixos_test_reconcile_root_pkgs() {
+  local file="$1"
+  local replacement="$2"
+
+  if nixos_test_matches_rule nixos-test-root-pkgs-use "$file"; then
+    nixos_test_add_root_arg "$file" "$replacement"
+  elif nixos_test_has_root_arg "$file" "$replacement"; then
+    nixos_test_remove_root_pkgs "$file"
+  else
+    nixos_test_rename_root_arg "$file" pkgs "$replacement"
+  fi
+}
+
 nixos_test_parse() {
   local file="$1"
 

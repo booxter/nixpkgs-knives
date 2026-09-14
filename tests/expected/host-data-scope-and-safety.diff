@@ -24,3 +24,15 @@
          {
            assertions = [
              { assertion = false;
+--- a/nixos/tests/amazon-cloudwatch-agent.nix
++++ b/nixos/tests/amazon-cloudwatch-agent.nix
+@@ -1,7 +1,7 @@
+-{ pkgs, ... }:
++{ hostPkgs, pkgs, ... }:
+ let
+   # See https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html.
+-  iniFormat = pkgs.formats.ini { };
++  iniFormat = hostPkgs.formats.ini { };
+ 
+   region = "ap-northeast-1";
+   sharedConfigurationDefaultProfile = "default";

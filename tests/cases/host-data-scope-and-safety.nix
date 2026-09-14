@@ -6,6 +6,6 @@
     "nixos/tests/containers-imperative.nix"
     "nixos/tests/amazon-cloudwatch-agent.nix"
   ];
-  expectedCandidates = 1;
+  expectedCandidates = 2;
   expectedDiff = ../expected/host-data-scope-and-safety.diff;
 }

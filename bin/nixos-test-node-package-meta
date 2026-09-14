@@ -10,28 +10,18 @@ nixos_test_init
 
 is_candidate() {
   local file="$1"
-  local meta_count pkgs_use_count
 
   nixos_test_is_named "$file" || return
   nixos_test_matches_rule nixos-test-root-open-function "$file" || return
   nixos_test_matches_rule nixos-test-root-plain-pkgs-formal "$file" || return
-
-  meta_count=$(nixos_test_rule_match_count nixos-test-node-package-meta-pkgs "$file")
-  [[ "$meta_count" -gt 0 ]] || return
-
-  pkgs_use_count=$(nixos_test_rule_match_count nixos-test-root-pkgs-use "$file")
-  [[ "$meta_count" -eq "$pkgs_use_count" ]]
+  nixos_test_matches_rule nixos-test-node-package-meta-pkgs "$file"
 }
 
 migrate_file() {
   local file="$1"
 
   nixos_test_apply_rule nixos-test-node-package-meta-pkgs "$file"
-  if nixos_test_has_root_arg "$file" config; then
-    nixos_test_remove_root_pkgs "$file"
-  else
-    nixos_test_rename_root_arg "$file" pkgs config
-  fi
+  nixos_test_reconcile_root_pkgs "$file" config
 }
 
 nixos_test_run is_candidate migrate_file

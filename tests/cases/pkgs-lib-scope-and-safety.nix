@@ -7,6 +7,6 @@
     "nixos/tests/ferm.nix"
     "nixos/tests/android-translation-layer.nix"
   ];
-  expectedCandidates = 2;
+  expectedCandidates = 3;
   expectedDiff = ../expected/pkgs-lib-scope-and-safety.diff;
 }
