@@ -1,0 +1,7 @@
+id: nixos-test-formal-pkgs
+valid:
+  - "{ lib, ... }: pkgs.hello"
+  - "{ package ? pkgs.hello, ... }: package"
+invalid:
+  - "{ pkgs, ... }: 1"
+  - "{ ... }: ({ pkgs, ... }: 1)"

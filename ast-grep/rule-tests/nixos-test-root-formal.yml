@@ -1,0 +1,7 @@
+id: nixos-test-root-formal
+valid:
+  - "{ value = ({ pkgs, ... }: pkgs); }"
+  - "{ value = ({ package ? pkgs.hello, ... }: package); }"
+invalid:
+  - "{ pkgs, ... }: pkgs"
+  - "{ pkgs ? 1, lib, ... }: lib"

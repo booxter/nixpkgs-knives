@@ -1,0 +1,10 @@
+id: nixos-test-system-packages-pkgs
+valid:
+  - "{ pkgs, ... }: { environment.etc.hello.source = pkgs.hello; }"
+  - "{ pkgs, ... }: { environment.systemPackages = [ hello ]; }"
+  - "{ pkgs, ... }: { environment.systemPackages = [ { pkgs.hello = 1; } ]; }"
+  - "{ pkgs, ... }: { nodes.machine = { config, ... }: { environment.systemPackages = [ pkgs.hello ]; }; }"
+invalid:
+  - "{ pkgs, ... }: { environment.systemPackages = [ pkgs.hello ]; }"
+  - "{ pkgs, ... }: { environment.systemPackages = with pkgs; [ hello ]; }"
+  - "{ pkgs, ... }: { nodes.machine = { lib, ... }: { environment.systemPackages = [ pkgs.hello ]; }; }"

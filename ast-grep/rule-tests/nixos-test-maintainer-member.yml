@@ -1,0 +1,8 @@
+id: nixos-test-maintainer-member
+valid:
+  - "{ pkgs, ... }: pkgs.lib.maintainers"
+  - "{ pkgs, ... }: ({ pkgs, ... }: pkgs.lib.maintainers.alice)"
+  - "{ value = pkgs.lib.maintainers.alice; }"
+invalid:
+  - "{ pkgs, ... }: pkgs.lib.maintainers.alice"
+  - "{ pkgs, ... }: ({ lib, ... }: pkgs.lib.maintainers.alice)"

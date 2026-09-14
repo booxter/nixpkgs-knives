@@ -1,0 +1,8 @@
+id: nixos-test-maintainers
+valid:
+  - "{ pkgs, ... }: pkgs.lib.licenses"
+  - "{ pkgs, ... }: ({ pkgs, ... }: pkgs.lib.maintainers)"
+  - "{ value = pkgs.lib.maintainers; }"
+invalid:
+  - "{ pkgs, ... }: pkgs.lib.maintainers"
+  - "{ pkgs, ... }: ({ lib, ... }: pkgs.lib.maintainers)"
