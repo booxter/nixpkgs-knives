@@ -1,0 +1,8 @@
+--- a/nixos/tests/age-plugin-tpm-decrypt.nix
++++ b/nixos/tests/age-plugin-tpm-decrypt.nix
+@@ -1,4 +1,4 @@
+-{ pkgs, lib, ... }:
++{ lib, ... }:
+ {
+   name = "age-plugin-tpm-decrypt";
+   meta = with lib.maintainers; {

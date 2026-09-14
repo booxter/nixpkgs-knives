@@ -1,0 +1,13 @@
+id: nixos-test-root-open-function
+language: Nix
+# The outer function when its argument set contains an ellipsis.
+rule:
+  all:
+    - matches: nixos-test-outer-function
+    - has:
+        all:
+          - kind: formals
+          - has:
+              kind: ellipses
+              stopBy: neighbor
+        stopBy: neighbor

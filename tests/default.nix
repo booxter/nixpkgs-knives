@@ -6,6 +6,13 @@
 
 let
   runKnife = pkgs.callPackage ./run-with-knife.nix { inherit cut; };
+  ruleTests = pkgs.runCommand "test-ast-grep-rules" { nativeBuildInputs = [ pkgs.ast-grep ]; } ''
+    cp -R ${../ast-grep} ast-grep
+    chmod -R u+w ast-grep
+    cd ast-grep
+    ast-grep test --skip-snapshot-tests
+    touch "$out"
+  '';
   cases = map import [
     ./cases/maintainers-airsonic.nix
     ./cases/maintainers-iosched.nix
@@ -15,9 +22,15 @@ let
     ./cases/system-packages-man.nix
     ./cases/system-packages-snapcast.nix
     ./cases/system-packages-zfs.nix
+    ./cases/unused-root-pkgs-clickhouse-ui.nix
+    ./cases/unused-root-pkgs-nested-shadow.nix
+    ./cases/unused-root-pkgs-safety.nix
   ];
 in
-builtins.listToAttrs (
+{
+  ast-grep-rules = ruleTests;
+}
+// builtins.listToAttrs (
   map (case: {
     inherit (case) name;
     value = runKnife (case // { fixture = fixtures.${case.fixture}; });

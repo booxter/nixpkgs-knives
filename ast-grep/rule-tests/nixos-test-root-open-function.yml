@@ -1,0 +1,5 @@
+id: nixos-test-root-open-function
+valid:
+  - "{ pkgs }: pkgs"
+invalid:
+  - "{ pkgs, ... }: pkgs"

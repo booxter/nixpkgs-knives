@@ -1,6 +1,6 @@
 id: nixos-test-root-pkgs-use
 language: Nix
-# Actual uses of outer pkgs, excluding formals, attribute names, and shadows.
+# Actual uses of outer pkgs, excluding its formal, attribute names, and shadows.
 rule:
   all:
     - kind: identifier
@@ -10,8 +10,8 @@ rule:
         stopBy: end
     - not:
         inside:
-          kind: formals
-          stopBy: end
+          kind: formal
+          stopBy: neighbor
     - not:
         inside:
           kind: attrpath

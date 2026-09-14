@@ -1,0 +1,8 @@
+id: nixos-test-root-pkgs-use
+valid:
+  - "{ pkgs, ... }: 1"
+  - "{ pkgs, ... }: ({ pkgs, ... }: pkgs.hello)"
+  - "{ pkgs, ... }: { pkgs.hello = 1; }"
+invalid:
+  - "{ pkgs, lib ? pkgs.lib, ... }: lib"
+  - "{ pkgs, ... }: pkgs.hello"

@@ -1,0 +1,9 @@
+--- a/nixos/tests/clickhouse/ui.nix
++++ b/nixos/tests/clickhouse/ui.nix
+@@ -1,6 +1,5 @@
+ {
+   lib,
+-  pkgs,
+   package,
+   ...
+ }:
