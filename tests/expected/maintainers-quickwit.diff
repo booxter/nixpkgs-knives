@@ -1,0 +1,11 @@
+--- a/nixos/tests/quickwit.nix
++++ b/nixos/tests/quickwit.nix
+@@ -51,7 +51,7 @@
+ in
+ {
+   name = "quickwit";
+-  meta.maintainers = [ pkgs.lib.maintainers.happysalada ];
++  meta.maintainers = [ lib.maintainers.happysalada ];
+ 
+   nodes = {
+     quickwit =

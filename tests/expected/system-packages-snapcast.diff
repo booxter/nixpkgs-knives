@@ -1,0 +1,23 @@
+--- a/nixos/tests/snapcast.nix
++++ b/nixos/tests/snapcast.nix
+@@ -1,6 +1,6 @@
+ {
+   lib,
+-  pkgs,
++  config,
+   ...
+ }:
+ 
+@@ -46,10 +46,10 @@
+         };
+         openFirewall = true;
+       };
+-      environment.systemPackages = [ pkgs.snapcast ];
++      environment.systemPackages = [ config.node.pkgs.snapcast ];
+     };
+     client = {
+-      environment.systemPackages = [ pkgs.snapcast ];
++      environment.systemPackages = [ config.node.pkgs.snapcast ];
+     };
+   };
+ 
