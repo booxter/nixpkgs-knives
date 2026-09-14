@@ -2,114 +2,10 @@
 
 set -euo pipefail
 
-tests_dir="${NIXOS_TESTS_DIR:-nixos/tests}"
+knife_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$knife_dir/../lib/nixos-test.sh"
 
-if [[ ! -d "$tests_dir" ]]; then
-  echo "Test directory does not exist: $tests_dir" >&2
-  exit 1
-fi
-
-ast_grep="${AST_GREP:-$(nix build --no-link --print-out-paths -f . ast-grep)/bin/ast-grep}"
-
-# Find the pkgs formal belonging to the outer function.
-root_rule='
-id: root-pkgs
-language: nix
-rule:
-  all:
-    - kind: identifier
-    - regex: "^pkgs$"
-    - inside:
-        all:
-          - kind: formal
-          - inside:
-              all:
-                - kind: formals
-                - inside:
-                    all:
-                      - kind: function_expression
-                      - inside:
-                          kind: source_code
-                          stopBy: neighbor
-                    stopBy: neighbor
-              stopBy: neighbor
-        stopBy: neighbor
-'
-
-# Find identifiers belonging to the outer function argument set.
-root_formal_rule='
-id: root-formal
-language: nix
-rule:
-  all:
-    - kind: identifier
-    - inside:
-        all:
-          - kind: formal
-          - inside:
-              all:
-                - kind: formals
-                - inside:
-                    all:
-                      - kind: function_expression
-                      - inside:
-                          kind: source_code
-                          stopBy: neighbor
-                    stopBy: neighbor
-              stopBy: neighbor
-        stopBy: neighbor
-'
-
-# Find uses of the outer pkgs argument. Its formal, attribute names, and
-# references below functions that shadow pkgs do not count as uses.
-root_pkgs_use_rule='
-id: root-pkgs-use
-language: nix
-utils:
-  pkgs-shadowing-function:
-    all:
-      - kind: function_expression
-      - not:
-          inside:
-            kind: source_code
-            stopBy: neighbor
-      - has:
-          all:
-            - kind: formals
-            - has:
-                all:
-                  - kind: formal
-                  - has:
-                      all:
-                        - kind: identifier
-                        - regex: "^pkgs$"
-                      stopBy: neighbor
-                stopBy: neighbor
-          stopBy: neighbor
-rule:
-  all:
-    - kind: identifier
-    - regex: "^pkgs$"
-    - inside:
-        all:
-          - kind: function_expression
-          - inside:
-              kind: source_code
-              stopBy: neighbor
-        stopBy: end
-    - not:
-        inside:
-          kind: formals
-          stopBy: end
-    - not:
-        inside:
-          kind: attrpath
-          stopBy: neighbor
-    - not:
-        inside:
-          matches: pkgs-shadowing-function
-          stopBy: end
-'
+nixos_test_init
 
 # Match pkgs.lib.maintainers only when pkgs comes from the outer function.
 # References below functions that shadow pkgs are left untouched.
@@ -153,62 +49,7 @@ rule:
           stopBy: end
 '
 
-# Add lib alongside pkgs in a single-line outer argument set.
-add_lib_single_line_rule='
-id: add-lib-single-line
-language: nix
-rule:
-  all:
-    - kind: identifier
-    - regex: "^pkgs$"
-    - inside:
-        all:
-          - kind: formal
-          - inside:
-              all:
-                - kind: formals
-                - not:
-                    regex: "\\n"
-                - inside:
-                    all:
-                      - kind: function_expression
-                      - inside:
-                          kind: source_code
-                          stopBy: neighbor
-                    stopBy: neighbor
-              stopBy: neighbor
-        stopBy: neighbor
-fix: "lib, pkgs"
-'
-
-# Add lib alongside pkgs while preserving a multiline outer argument set.
-add_lib_multi_line_rule='
-id: add-lib-multi-line
-language: nix
-rule:
-  all:
-    - kind: identifier
-    - regex: "^pkgs$"
-    - inside:
-        all:
-          - kind: formal
-          - inside:
-              all:
-                - kind: formals
-                - regex: "\\n"
-                - inside:
-                    all:
-                      - kind: function_expression
-                      - inside:
-                          kind: source_code
-                          stopBy: neighbor
-                    stopBy: neighbor
-              stopBy: neighbor
-        stopBy: neighbor
-fix: "lib,\npkgs"
-'
-
-# Rewrite a selected maintainer first so that its final attribute is preserved.
+# Rewrite a selected maintainer first so its final attribute is preserved.
 root_maintainer_member_rule='
 id: root-maintainer-member
 language: nix
@@ -250,27 +91,15 @@ rule:
 fix: "lib.maintainers.$MAINTAINER"
 '
 
-# Rewrite exact pkgs.lib.maintainers references after selected maintainers.
+# Rewrite the exact selection after selected maintainers.
 root_maintainers_fix_rule="${root_maintainers_rule}
 fix: lib.maintainers
 "
 
 candidates() {
-  local -a root_files=()
-  local file matches root_args unexpected_args
+  local file matches
 
   while IFS= read -r file; do
-    root_files+=("$file")
-  done < <(
-    "$ast_grep" scan \
-      --inline-rules "$root_rule" \
-      --files-with-matches \
-      --globs '!**/common/**' \
-      "$tests_dir" |
-      sort -u
-  )
-
-  for file in "${root_files[@]}"; do
     matches=$(
       "$ast_grep" scan \
         --inline-rules "$root_maintainers_rule" \
@@ -279,83 +108,11 @@ candidates() {
     )
     [[ -n "$matches" ]] || continue
 
-    # Exclude helper modules and test generators without a test name.
-    grep -q '^  name = ' "$file" || continue
-
-    root_args=$(
-      "$ast_grep" scan \
-        --inline-rules "$root_formal_rule" \
-        --json=stream \
-        "$file" |
-        jq -r '.text'
-    )
-
-    # Unexpected arguments usually indicate a test generator called by another
-    # file rather than a test module evaluated by runTest.
-    unexpected_args=$(
-      printf '%s\n' "$root_args" |
-        grep -Ev '^(config|hostPkgs|lib|nodes|options|pkgs)$' ||
-        true
-    )
-    [[ -z "$unexpected_args" ]] || continue
+    nixos_test_is_named "$file" || continue
+    nixos_test_has_expected_root_args "$file" || continue
 
     printf '%s\n' "$file"
-  done
-}
-
-apply_rule() {
-  local rule="$1"
-  local file="$2"
-  local output
-
-  if ! output=$(
-    "$ast_grep" scan \
-      --inline-rules "$rule" \
-      --update-all \
-      "$file" 2>&1
-  ); then
-    printf '%s\n' "$output" >&2
-    exit 1
-  fi
-}
-
-remove_root_pkgs() {
-  local file="$1"
-  local location line column
-
-  location=$(
-    "$ast_grep" scan \
-      --inline-rules "$root_formal_rule" \
-      --json=stream \
-      "$file" |
-      jq -r 'select(.text == "pkgs") | "\(.range.start.line + 1) \(.range.start.column)"'
-  )
-  read -r line column <<< "$location"
-
-  # Remove a standalone formal line, or its adjacent comma when the outer
-  # argument set is on one line. The AST location keeps this edit scoped to
-  # the outer pkgs formal.
-  TARGET_LINE="$line" TARGET_COLUMN="$column" perl -i -pe '
-    next unless $. == $ENV{TARGET_LINE};
-
-    my $column = $ENV{TARGET_COLUMN};
-    my $before = substr($_, 0, $column);
-    my $formal = substr($_, $column, 4);
-    my $after = substr($_, $column + 4);
-
-    die "expected pkgs at line $ENV{TARGET_LINE}, column $column\n"
-      unless $formal eq "pkgs";
-
-    if ($before =~ /^\s*$/ && $after =~ /^[ \t]*,?[ \t]*(?:\r?\n)?$/) {
-      $_ = "";
-    } elsif ($after =~ s/^[ \t]*,[ \t]*//) {
-      $_ = $before . $after;
-    } elsif ($before =~ s/,[ \t]*$//) {
-      $_ = $before . $after;
-    } else {
-      $_ = $before . $after;
-    }
-  ' "$file"
+  done < <(nixos_test_root_pkgs_files)
 }
 
 files=()
@@ -371,36 +128,11 @@ if [[ "${#files[@]}" -eq 0 ]]; then
 fi
 
 for file in "${files[@]}"; do
-  root_args=$(
-    "$ast_grep" scan \
-      --inline-rules "$root_formal_rule" \
-      --json=stream \
-      "$file" |
-      jq -r '.text'
-  )
-
-  if ! printf '%s\n' "$root_args" | grep -qx lib; then
-    apply_rule "$add_lib_single_line_rule" "$file"
-    apply_rule "$add_lib_multi_line_rule" "$file"
-  fi
-
-  apply_rule "$root_maintainer_member_rule" "$file"
-  apply_rule "$root_maintainers_fix_rule" "$file"
-
-  remaining_pkgs_uses=$(
-    "$ast_grep" scan \
-      --inline-rules "$root_pkgs_use_rule" \
-      --json=stream \
-      "$file"
-  )
-  if [[ -z "$remaining_pkgs_uses" ]]; then
-    remove_root_pkgs "$file"
-  fi
-
-  nix-instantiate --parse "$file" >/dev/null
+  nixos_test_add_root_arg "$file" lib
+  nixos_test_apply_rule "$root_maintainer_member_rule" "$file"
+  nixos_test_apply_rule "$root_maintainers_fix_rule" "$file"
+  nixos_test_remove_unused_root_pkgs "$file"
+  nixos_test_parse "$file"
 done
 
-if [[ "$tests_dir" == nixos/tests ]]; then
-  git diff --check
-  git diff --stat
-fi
+nixos_test_finish
