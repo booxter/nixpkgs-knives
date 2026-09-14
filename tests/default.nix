@@ -43,6 +43,7 @@ in
 {
   ast-grep-rules = ruleTests;
   cut-dispatcher = pkgs.callPackage ./cut.nix { };
+  nixos-test-jobs = pkgs.callPackage ./nixos-test-jobs.nix { };
 }
 // builtins.listToAttrs (
   map (case: {
