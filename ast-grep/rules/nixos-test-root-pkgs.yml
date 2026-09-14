@@ -1,6 +1,0 @@
-id: nixos-test-root-pkgs
-language: Nix
-rule:
-  all:
-    - matches: nixos-test-outer-formal
-    - regex: "^pkgs$"

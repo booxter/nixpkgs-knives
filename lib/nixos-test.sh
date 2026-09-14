@@ -27,10 +27,11 @@ nixos_test_scan_rule() {
 }
 
 nixos_test_root_pkgs_files() {
-  nixos_test_scan_rule nixos-test-root-pkgs \
-    --files-with-matches \
+  nixos_test_scan_rule nixos-test-root-formal \
+    --json=stream \
     --globs '!**/common/**' \
     "$nixos_tests_dir" |
+    jq -r 'select(.text == "pkgs") | .file' |
     sort -u
 }
 
