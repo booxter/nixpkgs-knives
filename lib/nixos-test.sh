@@ -255,17 +255,8 @@ nixos_test_run() {
     nixos_test_parse "$file"
   done
 
-  nixos_test_finish
-
   # Let repeated dispatcher passes know that this knife applied changes.
   if [[ -n "${NIXPKGS_KNIVES_CHANGED_FILE:-}" ]]; then
     touch "$NIXPKGS_KNIVES_CHANGED_FILE"
-  fi
-}
-
-nixos_test_finish() {
-  if [[ "$nixos_tests_dir" == nixos/tests ]]; then
-    git diff --check
-    git diff --stat
   fi
 }

@@ -3,7 +3,6 @@
   stdenvNoCC,
   makeWrapper,
   coreutils,
-  git,
   gnugrep,
   jq,
   nix,
@@ -36,7 +35,6 @@ stdenvNoCC.mkDerivation {
         --prefix PATH : ${
           lib.makeBinPath [
             coreutils
-            git
             gnugrep
             jq
             nix
