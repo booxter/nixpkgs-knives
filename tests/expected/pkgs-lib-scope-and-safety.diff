@@ -1,0 +1,29 @@
+--- a/nixos/tests/drbd.nix
++++ b/nixos/tests/drbd.nix
+@@ -1,4 +1,4 @@
+-{ pkgs, lib, ... }:
++{ lib, ... }:
+ let
+   drbdPort = 7789;
+ 
+@@ -43,7 +43,7 @@
+ in
+ {
+   name = "drbd";
+-  meta = with pkgs.lib.maintainers; {
++  meta = with lib.maintainers; {
+     maintainers = [
+       ryantm
+       astro
+--- a/nixos/tests/ferm.nix
++++ b/nixos/tests/ferm.nix
+@@ -1,7 +1,7 @@
+-{ pkgs, ... }:
++{ lib, ... }:
+ {
+   name = "ferm";
+-  meta = with pkgs.lib.maintainers; {
++  meta = with lib.maintainers; {
+     maintainers = [ mic92 ];
+   };
+ 

@@ -24,6 +24,8 @@ let
     ./cases/node-package-meta-existing-config.nix
     ./cases/node-package-meta-scope-and-safety.nix
     ./cases/node-package-meta-shapes.nix
+    ./cases/pkgs-lib-members.nix
+    ./cases/pkgs-lib-scope-and-safety.nix
     ./cases/system-packages-ayatana-indicators.nix
     ./cases/system-packages-ax25.nix
     ./cases/system-packages-man.nix

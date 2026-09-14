@@ -1,0 +1,10 @@
+id: nixos-test-pkgs-lib-use
+valid:
+  - "{ pkgs, ... }: pkgs.hello"
+  - "{ pkgs, ... }: ({ pkgs, ... }: pkgs.lib.head [ 1 ])"
+  - "{ value = pkgs.lib; }"
+invalid:
+  - "{ pkgs, ... }: pkgs.lib"
+  - "{ pkgs, ... }: pkgs.lib.head [ 1 ]"
+  - "{ pkgs, ... }: pkgs.lib.strings.concatStrings [ \"a\" \"b\" ]"
+  - "{ pkgs, ... }: ({ lib, ... }: pkgs.lib.head [ 1 ])"

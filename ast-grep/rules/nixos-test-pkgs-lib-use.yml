@@ -1,0 +1,19 @@
+id: nixos-test-pkgs-lib-use
+language: Nix
+# Outer pkgs used as the receiver of a lib selection.
+rule:
+  all:
+    - kind: identifier
+    - regex: "^pkgs$"
+    - inside:
+        matches: nixos-test-outer-function
+        stopBy: end
+    - not:
+        inside:
+          matches: nixos-test-pkgs-shadowing-function
+          stopBy: end
+    - inside:
+        all:
+          - kind: select_expression
+          - regex: "(?s)^pkgs\\s*\\.\\s*lib(?:\\s*\\.|$)"
+        stopBy: end

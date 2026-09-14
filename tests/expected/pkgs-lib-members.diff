@@ -1,0 +1,50 @@
+--- a/nixos/tests/frr.nix
++++ b/nixos/tests/frr.nix
+@@ -5,10 +5,10 @@
+ #
+ # All interfaces are in OSPF Area 0.
+ 
+-{ pkgs, ... }:
++{ lib, ... }:
+ let
+ 
+-  ifAddr = node: iface: (pkgs.lib.head node.networking.interfaces.${iface}.ipv4.addresses).address;
++  ifAddr = node: iface: (lib.head node.networking.interfaces.${iface}.ipv4.addresses).address;
+ 
+   ospfConf1 = ''
+     interface eth2
+--- a/nixos/tests/munin.nix
++++ b/nixos/tests/munin.nix
+@@ -1,7 +1,7 @@
+ # This test runs basic munin setup with node and cron job running on the same
+ # machine.
+ 
+-{ pkgs, ... }:
++{ lib, ... }:
+ {
+   name = "munin";
+   meta = {
+@@ -28,7 +28,7 @@
+         };
+ 
+         # increase the systemd timer interval so it fires more often
+-        systemd.timers.munin-cron.timerConfig.OnCalendar = pkgs.lib.mkForce "*:*:0/10";
++        systemd.timers.munin-cron.timerConfig.OnCalendar = lib.mkForce "*:*:0/10";
+       };
+   };
+ 
+--- a/nixos/tests/aria2.nix
++++ b/nixos/tests/aria2.nix
+@@ -1,4 +1,4 @@
+-{ pkgs, ... }:
++{ lib, ... }:
+ let
+   rpcSecret = "supersecret";
+   rpc-listen-port = 6800;
+@@ -48,5 +48,5 @@
+     machine.shutdown()
+   '';
+ 
+-  meta.maintainers = [ pkgs.lib.maintainers.timhae ];
++  meta.maintainers = [ lib.maintainers.timhae ];
+ }

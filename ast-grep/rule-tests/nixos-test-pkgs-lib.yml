@@ -1,0 +1,8 @@
+id: nixos-test-pkgs-lib
+valid:
+  - "{ pkgs, ... }: pkgs.hello"
+  - "{ pkgs, ... }: ({ pkgs, ... }: pkgs.lib)"
+  - "{ value = pkgs.lib; }"
+invalid:
+  - "{ pkgs, ... }: pkgs.lib"
+  - "{ pkgs, ... }: ({ lib, ... }: pkgs.lib)"

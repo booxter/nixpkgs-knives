@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+knife_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/nixos-test.sh
+source "$knife_dir/../lib/nixos-test.sh"
+
+nixos_test_init
+
+is_candidate() {
+  local file="$1"
+  local lib_count pkgs_use_count
+
+  nixos_test_is_named "$file" || return
+  nixos_test_matches_rule nixos-test-root-open-function "$file" || return
+  nixos_test_matches_rule nixos-test-root-plain-pkgs-formal "$file" || return
+
+  lib_count=$(nixos_test_rule_match_count nixos-test-pkgs-lib-use "$file")
+  [[ "$lib_count" -gt 0 ]] || return
+
+  pkgs_use_count=$(nixos_test_rule_match_count nixos-test-root-pkgs-use "$file")
+  [[ "$lib_count" -eq "$pkgs_use_count" ]]
+}
+
+migrate_file() {
+  local file="$1"
+
+  # Rewrite a selected member first so its final attributes are preserved.
+  nixos_test_apply_rule nixos-test-pkgs-lib-member "$file"
+  nixos_test_apply_rule nixos-test-pkgs-lib "$file"
+  if nixos_test_has_root_arg "$file" lib; then
+    nixos_test_remove_root_pkgs "$file"
+  else
+    nixos_test_rename_root_arg "$file" pkgs lib
+  fi
+}
+
+nixos_test_run is_candidate migrate_file

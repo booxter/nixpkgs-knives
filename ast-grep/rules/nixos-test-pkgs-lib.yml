@@ -1,0 +1,14 @@
+id: nixos-test-pkgs-lib
+language: Nix
+# pkgs.lib -> lib after selected members have been rewritten.
+rule:
+  all:
+    - pattern: pkgs.lib
+    - inside:
+        matches: nixos-test-outer-function
+        stopBy: end
+    - not:
+        inside:
+          matches: nixos-test-pkgs-shadowing-function
+          stopBy: end
+fix: lib
