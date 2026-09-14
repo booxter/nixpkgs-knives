@@ -1,0 +1,7 @@
+id: nixos-test-node-config-binding
+language: Nix
+# A binding whose value is part of a node or container configuration.
+rule:
+  all:
+    - kind: binding
+    - regex: "(?s)^(?:nodes|containers)(?:\\.|\\s*=)"

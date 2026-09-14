@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+knife_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/nixos-test.sh
+source "$knife_dir/../lib/nixos-test.sh"
+
+nixos_test_init
+
+is_candidate() {
+  local file="$1"
+
+  nixos_test_is_named "$file" || return
+  nixos_test_matches_rule nixos-test-root-open-function "$file" || return
+  nixos_test_matches_rule nixos-test-root-plain-pkgs-formal "$file" || return
+  nixos_test_matches_rule nixos-test-node-config-pkgs "$file"
+}
+
+migrate_file() {
+  local file="$1"
+
+  nixos_test_apply_rule nixos-test-node-config-pkgs "$file"
+  nixos_test_reconcile_root_pkgs "$file" config
+}
+
+nixos_test_run is_candidate migrate_file

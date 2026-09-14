@@ -1,0 +1,26 @@
+id: nixos-test-node-config-pkgs
+language: Nix
+# Outer pkgs used inside a node or container configuration.
+rule:
+  all:
+    - kind: identifier
+    - regex: "^pkgs$"
+    - inside:
+        matches: nixos-test-outer-function
+        stopBy: end
+    - not:
+        inside:
+          kind: attrpath
+          stopBy: neighbor
+    - not:
+        inside:
+          matches: nixos-test-pkgs-shadowing-function
+          stopBy: end
+    - not:
+        inside:
+          matches: nixos-test-config-shadowing-function
+          stopBy: end
+    - inside:
+        matches: nixos-test-node-config-binding
+        stopBy: end
+fix: config.node.pkgs

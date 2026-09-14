@@ -1,0 +1,49 @@
+--- a/nixos/tests/cloudlog.nix
++++ b/nixos/tests/cloudlog.nix
+@@ -1,9 +1,9 @@
+-{ pkgs, ... }:
++{ config, ... }:
+ {
+   name = "cloudlog";
+   containers = {
+     machine = {
+-      services.mysql.package = pkgs.mariadb;
++      services.mysql.package = config.node.pkgs.mariadb;
+       services.cloudlog.enable = true;
+     };
+   };
+--- a/nixos/tests/btrbk.nix
++++ b/nixos/tests/btrbk.nix
+@@ -1,4 +1,4 @@
+-{ pkgs, ... }:
++{ config, pkgs, ... }:
+ 
+ let
+   privateKey = ''
+@@ -24,7 +24,7 @@
+     archive =
+       { ... }:
+       {
+-        environment.systemPackages = with pkgs; [ btrfs-progs ];
++        environment.systemPackages = with config.node.pkgs; [ btrfs-progs ];
+         # note: this makes the privateKey world readable.
+         # don't do it with real ssh keys.
+         environment.etc."btrbk_key".text = privateKey;
+@@ -52,7 +52,7 @@
+     main =
+       { ... }:
+       {
+-        environment.systemPackages = with pkgs; [ btrfs-progs ];
++        environment.systemPackages = with config.node.pkgs; [ btrfs-progs ];
+         services.openssh = {
+           enable = true;
+           settings = {
+@@ -61,7 +61,7 @@
+           };
+         };
+         services.btrbk = {
+-          extraPackages = [ pkgs.lz4 ];
++          extraPackages = [ config.node.pkgs.lz4 ];
+           sshAccess = [
+             {
+               key = publicKey;

@@ -1,0 +1,11 @@
+id: nixos-test-node-config-pkgs
+valid:
+  - "{ pkgs, ... }: { environment.systemPackages = [ pkgs.hello ]; }"
+  - "{ pkgs, ... }: { nodes.machine = { environment.systemPackages = [ hello ]; }; }"
+  - "{ pkgs, ... }: { nodes.machine = { pkgs.hello = true; }; }"
+  - "{ pkgs, ... }: { nodes.machine = { pkgs, ... }: { environment.systemPackages = [ pkgs.hello ]; }; }"
+  - "{ pkgs, ... }: { nodes.machine = { config, ... }: { environment.systemPackages = [ pkgs.hello ]; }; }"
+invalid:
+  - "{ pkgs, ... }: { nodes.machine = { environment.systemPackages = [ pkgs.hello ]; }; }"
+  - "{ pkgs, ... }: { containers.machine.config.environment.systemPackages = [ pkgs.hello ]; }"
+  - "{ pkgs, ... }: { nodes.machine = { lib, ... }: { environment.systemPackages = [ pkgs.hello ]; }; }"
