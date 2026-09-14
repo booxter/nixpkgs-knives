@@ -1,0 +1,17 @@
+--- a/nixos/tests/iosched.nix
++++ b/nixos/tests/iosched.nix
+@@ -1,4 +1,5 @@
+ {
++  lib,
+   pkgs,
+   ...
+ }:
+@@ -10,7 +11,7 @@
+ in
+ {
+   name = "iosched";
+-  meta.maintainers = with pkgs.lib.maintainers; [ mvs ];
++  meta.maintainers = with lib.maintainers; [ mvs ];
+ 
+   nodes.machine = {
+     virtualisation.qemu.options = [

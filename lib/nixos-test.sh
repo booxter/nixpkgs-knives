@@ -265,7 +265,8 @@ nixos_test_remove_unused_root_pkgs() {
 nixos_test_parse() {
   local file="$1"
 
-  nix-instantiate --parse "$file" >/dev/null
+  # Parsing needs no store; dummy avoids contacting the Nix daemon in sandboxes.
+  nix-instantiate --store dummy:// --parse "$file" >/dev/null
 }
 
 nixos_test_finish() {

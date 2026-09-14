@@ -1,0 +1,21 @@
+--- a/nixos/tests/man.nix
++++ b/nixos/tests/man.nix
+@@ -1,4 +1,4 @@
+-{ pkgs, lib, ... }:
++{ config, lib, ... }:
+ let
+   manImplementations = [
+     "mandoc"
+@@ -12,9 +12,9 @@
+     # So if a man section comes from one package exclusively (e. g.
+     # 1p from man-pages-posix and 2 from man-pages), it isn't searchable.
+     environment.systemPackages = [
+-      pkgs.man-pages
+-      pkgs.openssl
+-      pkgs.libunwind
++      config.node.pkgs.man-pages
++      config.node.pkgs.openssl
++      config.node.pkgs.libunwind
+     ];
+ 
+     documentation = {

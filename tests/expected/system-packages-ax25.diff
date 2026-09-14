@@ -1,0 +1,17 @@
+--- a/nixos/tests/ax25.nix
++++ b/nixos/tests/ax25.nix
+@@ -1,4 +1,4 @@
+-{ pkgs, lib, ... }:
++{ config, pkgs, lib, ... }:
+ 
+ let
+   baud = 57600;
+@@ -11,7 +11,7 @@
+ 
+     networking.firewall.allowedTCPPorts = [ socatPort ];
+ 
+-    environment.systemPackages = with pkgs; [
++    environment.systemPackages = with config.node.pkgs; [
+       libax25
+       ax25-tools
+       ax25-apps
