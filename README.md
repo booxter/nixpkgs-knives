@@ -19,3 +19,13 @@ Run the checks with:
 ```console
 nix flake check
 ```
+
+To discover and run NixOS tests affected by the current diff:
+
+```console
+nix run /path/to/nixpkgs-knives#verify
+```
+
+Use `--list` to only show affected tests, `--drivers-only` to stop after
+building their drivers, or `--base HEAD^` to validate a committed change. Test
+evaluation uses one worker by default; override that with `--workers`.

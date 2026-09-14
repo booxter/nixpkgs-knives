@@ -57,6 +57,10 @@
           type = "app";
           program = "${self.packages.${system}.cut}/bin/cut";
         };
+        verify = {
+          type = "app";
+          program = "${self.packages.${system}.cut}/bin/verify";
+        };
       });
 
       formatter = forAllSystems (system: treefmt.${system}.config.build.wrapper);

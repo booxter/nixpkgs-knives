@@ -1,0 +1,14 @@
+Changed NixOS test files: 1
+Evaluating baseline tests for x86_64-linux
+Evaluating modified tests for x86_64-linux
+Affected tests for x86_64-linux: 2
+  changed
+  new
+Removed tests for x86_64-linux: 1
+  removed
+Building x86_64-linux test drivers:
+  changed
+  new
+Building x86_64-linux tests:
+  changed
+  new

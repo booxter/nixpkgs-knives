@@ -44,6 +44,7 @@ in
   ast-grep-rules = ruleTests;
   cut-dispatcher = pkgs.callPackage ./cut.nix { };
   nixos-test-jobs = pkgs.callPackage ./nixos-test-jobs.nix { };
+  verifier = pkgs.callPackage ./verify.nix { inherit cut; };
 }
 // builtins.listToAttrs (
   map (case: {

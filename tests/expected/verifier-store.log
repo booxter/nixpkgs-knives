@@ -1,0 +1,2 @@
+--realise /nix/store/changed-driver.drv /nix/store/new-driver.drv
+--realise /nix/store/changed-test.drv /nix/store/new-test.drv
