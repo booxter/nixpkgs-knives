@@ -99,43 +99,17 @@ root_maintainers_fix_rule="${root_maintainers_rule}
 fix: lib.maintainers
 "
 
-candidates() {
-  local file matches
-
-  while IFS= read -r file; do
-    matches=$(
-      "$ast_grep" scan \
-        --inline-rules "$root_maintainers_rule" \
-        --json=stream \
-        "$file"
-    )
-    [[ -n "$matches" ]] || continue
-
-    nixos_test_is_named "$file" || continue
-    nixos_test_has_expected_root_args "$file" || continue
-
-    printf '%s\n' "$file"
-  done < <(nixos_test_root_pkgs_files)
+is_candidate() {
+  nixos_test_matches_rule "$root_maintainers_rule" "$1"
 }
 
-files=()
-while IFS= read -r file; do
-  files+=("$file")
-done < <(candidates)
+migrate_file() {
+  local file="$1"
 
-printf 'Found %d candidates\n' "${#files[@]}"
-printf '%s\n' "${files[@]}"
-
-if [[ "${#files[@]}" -eq 0 ]]; then
-  exit 0
-fi
-
-for file in "${files[@]}"; do
   nixos_test_add_root_arg "$file" lib
   nixos_test_apply_rule "$root_maintainer_member_rule" "$file"
   nixos_test_apply_rule "$root_maintainers_fix_rule" "$file"
   nixos_test_remove_unused_root_pkgs "$file"
-  nixos_test_parse "$file"
-done
+}
 
-nixos_test_finish
+nixos_test_run is_candidate migrate_file

@@ -122,6 +122,31 @@ nixos_test_root_pkgs_files() {
     sort -u
 }
 
+nixos_test_matches_rule() {
+  local rule="$1"
+  local file="$2"
+  local matches
+
+  matches=$(
+    "$ast_grep" scan \
+      --inline-rules "$rule" \
+      --json=stream \
+      "$file"
+  )
+  [[ -n "$matches" ]]
+}
+
+nixos_test_rule_match_count() {
+  local rule="$1"
+  local file="$2"
+
+  "$ast_grep" scan \
+    --inline-rules "$rule" \
+    --json=stream \
+    "$file" |
+    jq -s length
+}
+
 nixos_test_root_args() {
   local file="$1"
 
@@ -267,6 +292,35 @@ nixos_test_parse() {
 
   # Parsing needs no store; dummy avoids contacting the Nix daemon in sandboxes.
   nix-instantiate --store dummy:// --parse "$file" >/dev/null
+}
+
+nixos_test_run() {
+  local candidate_function="$1"
+  local migrate_function="$2"
+  local file
+  local -a files=()
+
+  while IFS= read -r file; do
+    "$candidate_function" "$file" || continue
+    nixos_test_is_named "$file" || continue
+    nixos_test_has_expected_root_args "$file" || continue
+
+    files+=("$file")
+  done < <(nixos_test_root_pkgs_files)
+
+  printf 'Found %d candidates\n' "${#files[@]}"
+  printf '%s\n' "${files[@]}"
+
+  if [[ "${#files[@]}" -eq 0 ]]; then
+    return
+  fi
+
+  for file in "${files[@]}"; do
+    "$migrate_function" "$file"
+    nixos_test_parse "$file"
+  done
+
+  nixos_test_finish
 }
 
 nixos_test_finish() {
