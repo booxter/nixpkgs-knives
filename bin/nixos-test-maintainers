@@ -9,7 +9,10 @@ source "$knife_dir/../lib/nixos-test.sh"
 nixos_test_init
 
 is_candidate() {
-  nixos_test_matches_rule nixos-test-maintainers "$1"
+  local file="$1"
+
+  nixos_test_matches_rule nixos-test-maintainers "$file" || return
+  nixos_test_is_simple_test "$file"
 }
 
 migrate_file() {

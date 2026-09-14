@@ -92,6 +92,12 @@ nixos_test_is_named() {
   grep -q '^  name = ' "$file"
 }
 
+nixos_test_is_simple_test() {
+  local file="$1"
+
+  nixos_test_is_named "$file" && nixos_test_has_expected_root_args "$file"
+}
+
 nixos_test_apply_rule() {
   local rule_id="$1"
   local file="$2"
@@ -209,9 +215,6 @@ nixos_test_run() {
 
   while IFS= read -r file; do
     "$candidate_function" "$file" || continue
-    nixos_test_is_named "$file" || continue
-    nixos_test_has_expected_root_args "$file" || continue
-
     files+=("$file")
   done < <(nixos_test_root_pkgs_files)
 

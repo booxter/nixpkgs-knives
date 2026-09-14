@@ -15,7 +15,9 @@ is_candidate() {
   nixos_test_matches_rule nixos-test-system-packages-pkgs "$file" || return
 
   formal_count=$(nixos_test_rule_match_count nixos-test-formal-pkgs "$file")
-  [[ "$formal_count" -eq 1 ]]
+  [[ "$formal_count" -eq 1 ]] || return
+
+  nixos_test_is_simple_test "$file"
 }
 
 migrate_file() {
