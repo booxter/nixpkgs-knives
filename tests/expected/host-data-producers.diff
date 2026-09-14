@@ -1,0 +1,49 @@
+--- a/nixos/tests/matrix/lk-jwt-service.nix
++++ b/nixos/tests/matrix/lk-jwt-service.nix
+@@ -1,5 +1,5 @@
+ {
+-  pkgs,
++  hostPkgs,
+   lib,
+   ...
+ }:
+@@ -10,7 +10,7 @@
+   nodes.machine = {
+     services.lk-jwt-service = {
+       enable = true;
+-      keyFile = pkgs.writers.writeYAML "keys.yaml" {
++      keyFile = hostPkgs.writers.writeYAML "keys.yaml" {
+         key = "f6lQGaHtM5HfgZjIcec3cOCRfiDqIine4CpZZnqdT5cE";
+       };
+       livekitUrl = "wss://127.0.0.1:8100";
+--- a/nixos/tests/udisks2.nix
++++ b/nixos/tests/udisks2.nix
+@@ -1,9 +1,9 @@
+-{ pkgs, ... }:
++{ hostPkgs, ... }:
+ 
+ let
+ 
+   # FIXME: 404s
+-  stick = pkgs.fetchurl {
++  stick = hostPkgs.fetchurl {
+     url = "https://nixos.org/~eelco/nix/udisks-test.img.xz";
+     sha256 = "0was1xgjkjad91nipzclaz5biv3m4b2nk029ga6nk7iklwi19l8b";
+   };
+--- a/nixos/tests/web-apps/dashy.nix
++++ b/nixos/tests/web-apps/dashy.nix
+@@ -1,4 +1,4 @@
+-{ pkgs, lib, ... }:
++{ hostPkgs, lib, ... }:
+ let
+   customSettings = {
+     pageInfo = {
+@@ -18,7 +18,7 @@
+     ];
+   };
+ 
+-  customSettingsYaml = (pkgs.formats.yaml_1_2 { }).generate "custom-conf.yaml" customSettings;
++  customSettingsYaml = (hostPkgs.formats.yaml_1_2 { }).generate "custom-conf.yaml" customSettings;
+ in
+ {
+   name = "dashy";

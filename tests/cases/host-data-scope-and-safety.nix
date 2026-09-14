@@ -1,0 +1,11 @@
+{
+  name = "host-data-scope-and-safety";
+  knife = "nixos-test-host-data";
+  fixture = "nixpkgs-master-2026-09-12";
+  files = [
+    "nixos/tests/containers-imperative.nix"
+    "nixos/tests/amazon-cloudwatch-agent.nix"
+  ];
+  expectedCandidates = 1;
+  expectedDiff = ../expected/host-data-scope-and-safety.diff;
+}

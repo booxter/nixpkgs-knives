@@ -1,0 +1,26 @@
+--- a/nixos/tests/containers-imperative.nix
++++ b/nixos/tests/containers-imperative.nix
+@@ -1,4 +1,4 @@
+-{ pkgs, lib, ... }:
++{ hostPkgs, lib, ... }:
+ {
+   name = "containers-imperative";
+   meta = {
+@@ -63,7 +63,7 @@
+ 
+   testScript =
+     let
+-      tmpfilesContainerConfig = pkgs.writeText "container-config-tmpfiles" ''
++      tmpfilesContainerConfig = hostPkgs.writeText "container-config-tmpfiles" ''
+         {
+           systemd.tmpfiles.rules = [ "d /foo - - - - -" ];
+           systemd.services.foo = {
+@@ -73,7 +73,7 @@
+           };
+         }
+       '';
+-      brokenCfg = pkgs.writeText "broken.nix" ''
++      brokenCfg = hostPkgs.writeText "broken.nix" ''
+         {
+           assertions = [
+             { assertion = false;

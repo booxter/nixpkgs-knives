@@ -1,0 +1,28 @@
+id: nixos-test-host-data-pkgs
+language: Nix
+# Outer pkgs used to produce platform-independent test data.
+rule:
+  all:
+    - kind: identifier
+    - regex: "^pkgs$"
+    - inside:
+        matches: nixos-test-outer-function
+        stopBy: end
+    - not:
+        inside:
+          matches: nixos-test-pkgs-shadowing-function
+          stopBy: end
+    - any:
+        - inside:
+            pattern: pkgs.writeText
+            stopBy: end
+        - inside:
+            pattern: pkgs.writers.writeYAML
+            stopBy: end
+        - inside:
+            pattern: pkgs.formats.$FORMAT
+            stopBy: end
+        - inside:
+            pattern: pkgs.fetchurl
+            stopBy: end
+fix: hostPkgs

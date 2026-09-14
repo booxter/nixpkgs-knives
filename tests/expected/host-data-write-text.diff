@@ -1,0 +1,15 @@
+--- a/nixos/tests/headplane.nix
++++ b/nixos/tests/headplane.nix
+@@ -1,8 +1,8 @@
+-{ lib, pkgs, ... }:
++{ lib, hostPkgs, ... }:
+ let
+-  cookieSecret = pkgs.writeText "cookie-secret" "01234567890123456789012345678901";
+-  oidcClientSecret = pkgs.writeText "oidc-client-secret" "client-secret";
+-  headscaleApiKey = pkgs.writeText "headscale-api-key" "headscale-api-key";
++  cookieSecret = hostPkgs.writeText "cookie-secret" "01234567890123456789012345678901";
++  oidcClientSecret = hostPkgs.writeText "oidc-client-secret" "client-secret";
++  headscaleApiKey = hostPkgs.writeText "headscale-api-key" "headscale-api-key";
+ in
+ {
+   name = "headplane";

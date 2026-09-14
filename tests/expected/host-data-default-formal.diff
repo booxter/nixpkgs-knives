@@ -1,0 +1,19 @@
+--- a/nixos/tests/systemd-sysusers-password-option-override-ordering.nix
++++ b/nixos/tests/systemd-sysusers-password-option-override-ordering.nix
+@@ -1,6 +1,6 @@
+ {
+   lib,
+-  pkgs ? import ../..,
++  hostPkgs ? import ../..,
+   ...
+ }:
+ let
+@@ -8,7 +8,7 @@
+   hashedPassword = "$y$j9T$wLgKY231.8j.ciV2MfEXe1$P0k5j3bCwHgnwW0Ive3w4knrgpiA4TzhCYLAnHvDZ51"; # test
+   hashedPassword1 = "$y$j9T$s8TyQJtNImvobhGM5Nlez0$3E8/O8EVGuA4sr1OQmrzi8GrRcy/AEhj454JjAn72A2"; # test
+ 
+-  hashedPasswordFile = pkgs.writeText "hashed-password" hashedPassword1;
++  hashedPasswordFile = hostPkgs.writeText "hashed-password" hashedPassword1;
+ in
+ {
+   name = "systemd-sysusers-password-option-override-ordering";

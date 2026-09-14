@@ -154,6 +154,31 @@ nixos_test_add_root_arg() {
   ' "$file"
 }
 
+nixos_test_rename_root_arg() {
+  local file="$1"
+  local from="$2"
+  local to="$3"
+  local location line column
+
+  location=$(nixos_test_root_arg_location "$file" "$from")
+  read -r line column <<< "$location"
+
+  # Replace only the formal name, preserving defaults and surrounding layout.
+  TARGET_LINE="$line" TARGET_COLUMN="$column" FROM="$from" TO="$to" perl -i -pe '
+    next unless $. == $ENV{TARGET_LINE};
+
+    my $column = $ENV{TARGET_COLUMN};
+    my $before = substr($_, 0, $column);
+    my $formal = substr($_, $column, length($ENV{FROM}));
+    my $after = substr($_, $column + length($ENV{FROM}));
+
+    die "expected $ENV{FROM} at line $ENV{TARGET_LINE}, column $column\n"
+      unless $formal eq $ENV{FROM};
+
+    $_ = $before . $ENV{TO} . $after;
+  ' "$file"
+}
+
 nixos_test_remove_root_pkgs() {
   local file="$1"
   local location line column

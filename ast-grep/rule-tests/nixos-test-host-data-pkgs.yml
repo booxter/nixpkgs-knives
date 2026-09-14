@@ -1,0 +1,12 @@
+id: nixos-test-host-data-pkgs
+valid:
+  - "{ pkgs, ... }: pkgs.runCommand \"data\" { } \"touch $out\""
+  - "{ pkgs, ... }: pkgs.writeShellScript \"script\" \"true\""
+  - "{ pkgs, ... }: ({ pkgs, ... }: pkgs.writeText \"data\" \"text\")"
+  - "{ value = pkgs.writeText \"data\" \"text\"; }"
+invalid:
+  - "{ pkgs, ... }: pkgs.writeText \"data\" \"text\""
+  - "{ pkgs, ... }: pkgs.writers.writeYAML \"data.yaml\" { value = 1; }"
+  - "{ pkgs, ... }: (pkgs.formats.json { }).generate \"data.json\" { value = 1; }"
+  - "{ pkgs, ... }: pkgs.fetchurl { url = \"https://example.invalid\"; hash = \"\"; }"
+  - "{ pkgs, ... }: ({ lib, ... }: pkgs.writeText \"data\" \"text\")"
