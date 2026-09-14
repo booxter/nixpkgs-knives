@@ -8,107 +8,17 @@ source "$knife_dir/../lib/nixos-test.sh"
 
 nixos_test_init
 
-# Match pkgs.lib.maintainers only when pkgs comes from the outer function.
-# References below functions that shadow pkgs are left untouched.
-root_maintainers_rule='
-id: root-maintainers
-language: nix
-utils:
-  pkgs-shadowing-function:
-    all:
-      - kind: function_expression
-      - not:
-          inside:
-            kind: source_code
-            stopBy: neighbor
-      - has:
-          all:
-            - kind: formals
-            - has:
-                all:
-                  - kind: formal
-                  - has:
-                      all:
-                        - kind: identifier
-                        - regex: "^pkgs$"
-                      stopBy: neighbor
-                stopBy: neighbor
-          stopBy: neighbor
-rule:
-  all:
-    - pattern: pkgs.lib.maintainers
-    - inside:
-        all:
-          - kind: function_expression
-          - inside:
-              kind: source_code
-              stopBy: neighbor
-        stopBy: end
-    - not:
-        inside:
-          matches: pkgs-shadowing-function
-          stopBy: end
-'
-
-# Rewrite a selected maintainer first so its final attribute is preserved.
-# $MAINTAINER is an ast-grep metavariable, not a shell variable.
-# shellcheck disable=SC2016
-root_maintainer_member_rule='
-id: root-maintainer-member
-language: nix
-utils:
-  pkgs-shadowing-function:
-    all:
-      - kind: function_expression
-      - not:
-          inside:
-            kind: source_code
-            stopBy: neighbor
-      - has:
-          all:
-            - kind: formals
-            - has:
-                all:
-                  - kind: formal
-                  - has:
-                      all:
-                        - kind: identifier
-                        - regex: "^pkgs$"
-                      stopBy: neighbor
-                stopBy: neighbor
-          stopBy: neighbor
-rule:
-  all:
-    - pattern: "pkgs.lib.maintainers.$MAINTAINER"
-    - inside:
-        all:
-          - kind: function_expression
-          - inside:
-              kind: source_code
-              stopBy: neighbor
-        stopBy: end
-    - not:
-        inside:
-          matches: pkgs-shadowing-function
-          stopBy: end
-fix: "lib.maintainers.$MAINTAINER"
-'
-
-# Rewrite the exact selection after selected maintainers.
-root_maintainers_fix_rule="${root_maintainers_rule}
-fix: lib.maintainers
-"
-
 is_candidate() {
-  nixos_test_matches_rule "$root_maintainers_rule" "$1"
+  nixos_test_matches_rule nixos-test-maintainers "$1"
 }
 
 migrate_file() {
   local file="$1"
 
   nixos_test_add_root_arg "$file" lib
-  nixos_test_apply_rule "$root_maintainer_member_rule" "$file"
-  nixos_test_apply_rule "$root_maintainers_fix_rule" "$file"
+  # Rewrite a selected maintainer first so its final attribute is preserved.
+  nixos_test_apply_rule nixos-test-maintainer-member "$file"
+  nixos_test_apply_rule nixos-test-maintainers "$file"
   nixos_test_remove_unused_root_pkgs "$file"
 }
 

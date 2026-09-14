@@ -1,0 +1,9 @@
+id: nixos-test-outer-function
+language: Nix
+# The function directly below the file's root node.
+rule:
+  all:
+    - kind: function_expression
+    - inside:
+        kind: source_code
+        stopBy: neighbor

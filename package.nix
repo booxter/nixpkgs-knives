@@ -24,6 +24,7 @@ stdenvNoCC.mkDerivation {
     cp cut "$out/bin/cut"
     cp bin/* "$out/share/nixpkgs-knives/bin/"
     cp lib/* "$out/share/nixpkgs-knives/lib/"
+    cp -R ast-grep "$out/share/nixpkgs-knives/"
     patchShebangs "$out/bin" "$out/share/nixpkgs-knives/bin"
 
     wrapProgram "$out/bin/cut" \

@@ -1,0 +1,21 @@
+id: nixos-test-pkgs-shadowing-function
+language: Nix
+# A nested function that binds its own pkgs.
+rule:
+  all:
+    - kind: function_expression
+    - not:
+        matches: nixos-test-outer-function
+    - has:
+        all:
+          - kind: formals
+          - has:
+              all:
+                - kind: formal
+                - has:
+                    all:
+                      - kind: identifier
+                      - regex: "^pkgs$"
+                    stopBy: neighbor
+              stopBy: neighbor
+        stopBy: neighbor

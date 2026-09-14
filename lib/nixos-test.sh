@@ -2,6 +2,8 @@
 
 # Shared support for knives that rewrite runTest-style NixOS tests.
 
+nixos_test_lib_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
 nixos_test_init() {
   nixos_tests_dir="${NIXOS_TESTS_DIR:-nixos/tests}"
 
@@ -11,111 +13,21 @@ nixos_test_init() {
   fi
 
   ast_grep="${AST_GREP:-$(nix build --no-link --print-out-paths -f . ast-grep)/bin/ast-grep}"
+  ast_grep_config="${AST_GREP_CONFIG:-$nixos_test_lib_dir/../ast-grep/sgconfig.yml}"
 }
 
-# Match the pkgs formal belonging to the outer function.
-nixos_test_root_pkgs_rule='
-id: root-pkgs
-language: nix
-rule:
-  all:
-    - kind: identifier
-    - regex: "^pkgs$"
-    - inside:
-        all:
-          - kind: formal
-          - inside:
-              all:
-                - kind: formals
-                - inside:
-                    all:
-                      - kind: function_expression
-                      - inside:
-                          kind: source_code
-                          stopBy: neighbor
-                    stopBy: neighbor
-              stopBy: neighbor
-        stopBy: neighbor
-'
+nixos_test_scan_rule() {
+  local rule_id="$1"
+  shift
 
-# Match identifiers in the outer function argument set.
-nixos_test_root_formal_rule='
-id: root-formal
-language: nix
-rule:
-  all:
-    - kind: identifier
-    - inside:
-        all:
-          - kind: formal
-          - inside:
-              all:
-                - kind: formals
-                - inside:
-                    all:
-                      - kind: function_expression
-                      - inside:
-                          kind: source_code
-                          stopBy: neighbor
-                    stopBy: neighbor
-              stopBy: neighbor
-        stopBy: neighbor
-'
-
-# Match actual uses of outer pkgs, excluding its formal, attribute names, and
-# references below functions that bind their own pkgs.
-nixos_test_root_pkgs_use_rule='
-id: root-pkgs-use
-language: nix
-utils:
-  pkgs-shadowing-function:
-    all:
-      - kind: function_expression
-      - not:
-          inside:
-            kind: source_code
-            stopBy: neighbor
-      - has:
-          all:
-            - kind: formals
-            - has:
-                all:
-                  - kind: formal
-                  - has:
-                      all:
-                        - kind: identifier
-                        - regex: "^pkgs$"
-                      stopBy: neighbor
-                stopBy: neighbor
-          stopBy: neighbor
-rule:
-  all:
-    - kind: identifier
-    - regex: "^pkgs$"
-    - inside:
-        all:
-          - kind: function_expression
-          - inside:
-              kind: source_code
-              stopBy: neighbor
-        stopBy: end
-    - not:
-        inside:
-          kind: formals
-          stopBy: end
-    - not:
-        inside:
-          kind: attrpath
-          stopBy: neighbor
-    - not:
-        inside:
-          matches: pkgs-shadowing-function
-          stopBy: end
-'
+  "$ast_grep" scan \
+    --config "$ast_grep_config" \
+    --filter "^${rule_id}$" \
+    "$@"
+}
 
 nixos_test_root_pkgs_files() {
-  "$ast_grep" scan \
-    --inline-rules "$nixos_test_root_pkgs_rule" \
+  nixos_test_scan_rule nixos-test-root-pkgs \
     --files-with-matches \
     --globs '!**/common/**' \
     "$nixos_tests_dir" |
@@ -123,13 +35,12 @@ nixos_test_root_pkgs_files() {
 }
 
 nixos_test_matches_rule() {
-  local rule="$1"
+  local rule_id="$1"
   local file="$2"
   local matches
 
   matches=$(
-    "$ast_grep" scan \
-      --inline-rules "$rule" \
+    nixos_test_scan_rule "$rule_id" \
       --json=stream \
       "$file"
   )
@@ -137,11 +48,10 @@ nixos_test_matches_rule() {
 }
 
 nixos_test_rule_match_count() {
-  local rule="$1"
+  local rule_id="$1"
   local file="$2"
 
-  "$ast_grep" scan \
-    --inline-rules "$rule" \
+  nixos_test_scan_rule "$rule_id" \
     --json=stream \
     "$file" |
     jq -s length
@@ -150,8 +60,7 @@ nixos_test_rule_match_count() {
 nixos_test_root_args() {
   local file="$1"
 
-  "$ast_grep" scan \
-    --inline-rules "$nixos_test_root_formal_rule" \
+  nixos_test_scan_rule nixos-test-root-formal \
     --json=stream \
     "$file" |
     jq -r '.text'
@@ -183,13 +92,12 @@ nixos_test_is_named() {
 }
 
 nixos_test_apply_rule() {
-  local rule="$1"
+  local rule_id="$1"
   local file="$2"
   local output
 
   if ! output=$(
-    "$ast_grep" scan \
-      --inline-rules "$rule" \
+    nixos_test_scan_rule "$rule_id" \
       --update-all \
       "$file" 2>&1
   ); then
@@ -202,8 +110,7 @@ nixos_test_root_arg_location() {
   local file="$1"
   local argument="$2"
 
-  "$ast_grep" scan \
-    --inline-rules "$nixos_test_root_formal_rule" \
+  nixos_test_scan_rule nixos-test-root-formal \
     --json=stream \
     "$file" |
     jq -r --arg argument "$argument" \
@@ -276,8 +183,7 @@ nixos_test_remove_unused_root_pkgs() {
   local remaining_pkgs_uses
 
   remaining_pkgs_uses=$(
-    "$ast_grep" scan \
-      --inline-rules "$nixos_test_root_pkgs_use_rule" \
+    nixos_test_scan_rule nixos-test-root-pkgs-use \
       --json=stream \
       "$file"
   )

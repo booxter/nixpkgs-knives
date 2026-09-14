@@ -1,0 +1,22 @@
+id: nixos-test-root-pkgs-use
+language: Nix
+# Actual uses of outer pkgs, excluding formals, attribute names, and shadows.
+rule:
+  all:
+    - kind: identifier
+    - regex: "^pkgs$"
+    - inside:
+        matches: nixos-test-outer-function
+        stopBy: end
+    - not:
+        inside:
+          kind: formals
+          stopBy: end
+    - not:
+        inside:
+          kind: attrpath
+          stopBy: neighbor
+    - not:
+        inside:
+          matches: nixos-test-pkgs-shadowing-function
+          stopBy: end

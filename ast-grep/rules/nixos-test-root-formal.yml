@@ -1,0 +1,5 @@
+id: nixos-test-root-formal
+language: Nix
+# Expose the reusable outer-formal utility as a scannable rule.
+rule:
+  matches: nixos-test-outer-formal

@@ -1,0 +1,21 @@
+id: nixos-test-config-shadowing-function
+language: Nix
+# A nested function that binds its own config.
+rule:
+  all:
+    - kind: function_expression
+    - not:
+        matches: nixos-test-outer-function
+    - has:
+        all:
+          - kind: formals
+          - has:
+              all:
+                - kind: formal
+                - has:
+                    all:
+                      - kind: identifier
+                      - regex: "^config$"
+                    stopBy: neighbor
+              stopBy: neighbor
+        stopBy: neighbor

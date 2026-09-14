@@ -1,0 +1,14 @@
+id: nixos-test-maintainers
+language: Nix
+# pkgs.lib.maintainers -> lib.maintainers
+rule:
+  all:
+    - pattern: pkgs.lib.maintainers
+    - inside:
+        matches: nixos-test-outer-function
+        stopBy: end
+    - not:
+        inside:
+          matches: nixos-test-pkgs-shadowing-function
+          stopBy: end
+fix: lib.maintainers

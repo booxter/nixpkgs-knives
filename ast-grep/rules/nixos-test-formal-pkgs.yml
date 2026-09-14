@@ -1,0 +1,10 @@
+id: nixos-test-formal-pkgs
+language: Nix
+# Count all pkgs formals so ambiguous files can be skipped.
+rule:
+  all:
+    - kind: identifier
+    - regex: "^pkgs$"
+    - inside:
+        kind: formal
+        stopBy: neighbor

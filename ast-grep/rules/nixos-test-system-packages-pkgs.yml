@@ -1,0 +1,34 @@
+id: nixos-test-system-packages-pkgs
+language: Nix
+# environment.systemPackages pkgs -> config.node.pkgs
+# Skip nested config bindings, where config.node.pkgs has a different meaning.
+rule:
+  all:
+    - kind: identifier
+    - regex: "^pkgs$"
+    - not:
+        inside:
+          kind: attrpath
+          stopBy: neighbor
+    - not:
+        inside:
+          matches: nixos-test-config-shadowing-function
+          stopBy: end
+    - any:
+        - inside:
+            all:
+              - kind: with_expression
+              - inside:
+                  kind: binding
+                  regex: "(?s)^environment\\.systemPackages\\s*="
+                  stopBy: neighbor
+            stopBy: end
+        - inside:
+            all:
+              - kind: list_expression
+              - inside:
+                  kind: binding
+                  regex: "(?s)^environment\\.systemPackages\\s*="
+                  stopBy: neighbor
+            stopBy: end
+fix: config.node.pkgs

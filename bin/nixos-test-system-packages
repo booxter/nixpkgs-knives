@@ -8,88 +8,13 @@ source "$knife_dir/../lib/nixos-test.sh"
 
 nixos_test_init
 
-# Match every pkgs function argument, including nested module arguments. Files
-# with more than one are skipped so the rewrite cannot touch a shadowed pkgs.
-formal_pkgs_rule='
-id: formal-pkgs
-language: nix
-rule:
-  all:
-    - kind: identifier
-    - regex: "^pkgs$"
-    - inside:
-        kind: formal
-        stopBy: neighbor
-'
-
-# environment.systemPackages = with pkgs; [ foo ];
-# environment.systemPackages = [ pkgs.foo ];
-#
-# Skip nested functions that bind config: config.node.pkgs there would refer to
-# the node configuration rather than the outer test configuration.
-system_packages_rule='
-id: system-packages-pkgs
-language: nix
-utils:
-  config-shadowing-function:
-    all:
-      - kind: function_expression
-      - not:
-          inside:
-            kind: source_code
-            stopBy: neighbor
-      - has:
-          all:
-            - kind: formals
-            - has:
-                all:
-                  - kind: formal
-                  - has:
-                      all:
-                        - kind: identifier
-                        - regex: "^config$"
-                      stopBy: neighbor
-                stopBy: neighbor
-          stopBy: neighbor
-rule:
-  all:
-    - kind: identifier
-    - regex: "^pkgs$"
-    - not:
-        inside:
-          kind: attrpath
-          stopBy: neighbor
-    - not:
-        inside:
-          matches: config-shadowing-function
-          stopBy: end
-    - any:
-        - inside:
-            all:
-              - kind: with_expression
-              - inside:
-                  kind: binding
-                  regex: "(?s)^environment\\.systemPackages\\s*="
-                  stopBy: neighbor
-            stopBy: end
-        - inside:
-            all:
-              - kind: list_expression
-              - inside:
-                  kind: binding
-                  regex: "(?s)^environment\\.systemPackages\\s*="
-                  stopBy: neighbor
-            stopBy: end
-fix: config.node.pkgs
-'
-
 is_candidate() {
   local file="$1"
   local formal_count
 
-  nixos_test_matches_rule "$system_packages_rule" "$file" || return
+  nixos_test_matches_rule nixos-test-system-packages-pkgs "$file" || return
 
-  formal_count=$(nixos_test_rule_match_count "$formal_pkgs_rule" "$file")
+  formal_count=$(nixos_test_rule_match_count nixos-test-formal-pkgs "$file")
   [[ "$formal_count" -eq 1 ]]
 }
 
@@ -97,7 +22,7 @@ migrate_file() {
   local file="$1"
 
   nixos_test_add_root_arg "$file" config
-  nixos_test_apply_rule "$system_packages_rule" "$file"
+  nixos_test_apply_rule nixos-test-system-packages-pkgs "$file"
   nixos_test_remove_unused_root_pkgs "$file"
 }
 
