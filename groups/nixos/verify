@@ -178,7 +178,9 @@ compare_jobs() {
           ],
           errors: [
             $keys[] as $attr
-            | select($new[$attr].kind == "error" and $old[$attr] != $new[$attr])
+            # Error rendering is not stable enough to compare textually. Only a
+            # transition from an evaluable test to an error is a regression.
+            | select($new[$attr].kind == "error" and $old[$attr].kind != "error")
             | { attr: $attr, error: $new[$attr].value }
           ],
           removed: [

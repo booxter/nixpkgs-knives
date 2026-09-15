@@ -42,6 +42,7 @@ let
 
     if [[ "$modified" == false ]]; then
       echo '{"attr":"changed.__job","drvPath":"/nix/store/before-test.drv"}'
+      echo '{"attr":"preexisting","error":"baseline wording"}'
       echo '{"attr":"removed.__job","drvPath":"/nix/store/removed-test.drv"}'
       echo '{"attr":"unchanged.__job","drvPath":"/nix/store/unchanged-test.drv"}'
     elif [[ "''${VERIFY_FAKE_ERROR:-false}" == true ]]; then
@@ -50,10 +51,12 @@ let
     elif [[ "$mode" == driver ]]; then
       echo '{"attr":"changed.__job","drvPath":"/nix/store/changed-driver.drv"}'
       echo '{"attr":"new.__job","drvPath":"/nix/store/new-driver.drv"}'
+      echo '{"attr":"preexisting","error":"driver wording"}'
       echo '{"attr":"unchanged.__job","drvPath":"/nix/store/unchanged-driver.drv"}'
     else
       echo '{"attr":"changed.__job","drvPath":"/nix/store/changed-test.drv"}'
       echo '{"attr":"new.__job","drvPath":"/nix/store/new-test.drv"}'
+      echo '{"attr":"preexisting","error":"modified wording"}'
       echo '{"attr":"unchanged.__job","drvPath":"/nix/store/unchanged-test.drv"}'
     fi
   '';
