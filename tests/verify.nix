@@ -86,17 +86,24 @@ runCommand "test-nixos-test-verifier"
     export NIXPKGS_KNIVES_NIX_STORE=${fakeStore}
     export VERIFY_TEST_LOG="$PWD/store.log"
 
-    ${cut}/bin/verify --system x86_64-linux > verify.log
+    if ${cut}/bin/verify > missing-group.log 2>&1; then
+      echo 'verify unexpectedly accepted a missing group' >&2
+      exit 1
+    fi
+    printf 'Usage: verify --group GROUP [ARGUMENTS...]\nAvailable groups:\n  nixos\n' > missing-group.expected
+    diff -u missing-group.expected missing-group.log
+
+    ${cut}/bin/verify --group nixos --system x86_64-linux > verify.log
     diff -u ${./expected/verifier.log} verify.log
     diff -u ${./expected/verifier-store.log} "$VERIFY_TEST_LOG"
 
     : > "$VERIFY_TEST_LOG"
-    ${cut}/bin/verify --list --system x86_64-linux > list.log
+    ${cut}/bin/verify --group nixos --list --system x86_64-linux > list.log
     diff -u ${./expected/verifier-list.log} list.log
     test ! -s "$VERIFY_TEST_LOG"
 
     export VERIFY_FAKE_ERROR=true
-    if ${cut}/bin/verify --list --system x86_64-linux > error.log 2>&1; then
+    if ${cut}/bin/verify --group nixos --list --system x86_64-linux > error.log 2>&1; then
       echo 'verify unexpectedly accepted a new evaluation error' >&2
       exit 1
     fi

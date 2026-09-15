@@ -49,6 +49,12 @@ in
 // builtins.listToAttrs (
   map (case: {
     inherit (case) name;
-    value = runKnife (case // { fixture = fixtures.${case.fixture}; });
+    value = runKnife (
+      case
+      // {
+        fixture = fixtures.${case.fixture};
+        group = "nixos";
+      }
+    );
   }) cases
 )

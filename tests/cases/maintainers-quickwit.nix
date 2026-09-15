@@ -1,6 +1,6 @@
 {
   name = "maintainers-quickwit";
-  knife = "nixos-test-maintainers";
+  knife = "test-maintainers";
   fixture = "nixpkgs-master-2026-09-12";
   files = [ "nixos/tests/quickwit.nix" ];
   expectedCandidates = 1;

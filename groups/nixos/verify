@@ -1,0 +1,282 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+verify_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+jobs_dir="${NIXPKGS_KNIVES_NIX_DIR:-$verify_dir/nix}"
+nix_eval_jobs="${NIXPKGS_KNIVES_NIX_EVAL_JOBS:-nix-eval-jobs}"
+nix_store="${NIXPKGS_KNIVES_NIX_STORE:-nix-store}"
+
+usage() {
+  cat <<'EOF'
+Usage: verify --group nixos [--base REV] [--system SYSTEM] [--workers COUNT]
+                              [--drivers-only | --list]
+
+Find and build NixOS tests affected by changes since REV (default: HEAD).
+Repeat --system to select multiple systems. By default, all systems supported
+by nixpkgs-knives are checked.
+EOF
+}
+
+die() {
+  printf '%s\n' "$*" >&2
+  exit 1
+}
+
+base=HEAD
+drivers_only=false
+list_only=false
+workers=1
+systems=()
+
+while (( $# > 0 )); do
+  case "$1" in
+    --base)
+      (( $# >= 2 )) || die "--base requires a revision"
+      base="$2"
+      shift 2
+      ;;
+    --system)
+      (( $# >= 2 )) || die "--system requires a system"
+      systems+=("$2")
+      shift 2
+      ;;
+    --workers)
+      (( $# >= 2 )) || die "--workers requires a count"
+      [[ "$2" =~ ^[1-9][0-9]*$ ]] || die "--workers requires a positive integer"
+      workers="$2"
+      shift 2
+      ;;
+    --drivers-only)
+      drivers_only=true
+      shift
+      ;;
+    --list)
+      list_only=true
+      shift
+      ;;
+    -h | --help)
+      usage
+      exit
+      ;;
+    *)
+      die "Unknown argument: $1"
+      ;;
+  esac
+done
+
+if [[ "$drivers_only" == true && "$list_only" == true ]]; then
+  die "--drivers-only and --list cannot be combined"
+fi
+
+if (( ${#systems[@]} == 0 )); then
+  systems=(aarch64-darwin aarch64-linux x86_64-linux)
+fi
+
+repo=$(git rev-parse --show-toplevel)
+[[ -d "$repo/nixos/tests" ]] || die "Not a Nixpkgs checkout: $repo"
+base_commit=$(git -C "$repo" rev-parse --verify "${base}^{commit}")
+
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+snapshot="$tmpdir/nixpkgs"
+mkdir -p "$snapshot" "$tmpdir/gc-roots"
+
+changed_tests="$tmpdir/changed-tests"
+git -C "$repo" diff --name-only -z "$base_commit" -- nixos/tests > "$changed_tests"
+git -C "$repo" ls-files --others --exclude-standard -z -- nixos/tests >> "$changed_tests"
+
+if [[ ! -s "$changed_tests" ]]; then
+  echo "No changed NixOS test files"
+  exit
+fi
+
+changed_count=$(tr -cd '\0' < "$changed_tests" | wc -c | tr -d ' ')
+printf 'Changed NixOS test files: %s\n' "$changed_count"
+
+git -C "$repo" archive "$base_commit" | tar -x -C "$snapshot"
+
+evaluate_jobs() {
+  local mode="$1"
+  local system="$2"
+  local output="$3"
+  local diagnostics="$output.stderr"
+
+  if ! "$nix_eval_jobs" \
+    --force-recurse \
+    --quiet \
+    --workers "$workers" \
+    --gc-roots-dir "$tmpdir/gc-roots" \
+    --argstr mode "$mode" \
+    --argstr nixpkgsPath "$snapshot" \
+    --argstr system "$system" \
+    "$jobs_dir/nixos-test-jobs.nix" > "$output" 2> "$diagnostics"; then
+    cat "$diagnostics" >&2
+    die "Test evaluation did not complete for $system"
+  fi
+
+  if [[ ! -s "$output" ]]; then
+    cat "$diagnostics" >&2
+    die "Test evaluation produced no results for $system"
+  fi
+  if ! jq -e -s 'all(.[]; has("attr") and (has("drvPath") or has("error")))' \
+    "$output" >/dev/null; then
+    cat "$diagnostics" >&2
+    die "Invalid test evaluation output for $system"
+  fi
+
+  # nix-eval-jobs returns success for per-attribute errors and records them in
+  # JSON. Those errors are compared below instead of failing the whole tree.
+}
+
+for system in "${systems[@]}"; do
+  printf 'Evaluating baseline tests for %s\n' "$system"
+  evaluate_jobs test "$system" "$tmpdir/before-$system.jsonl"
+done
+
+# Reusing one path prevents source-location changes from perturbing every test
+# derivation. Separate evaluator processes ensure the modified files are read.
+if ! git -C "$repo" diff --quiet "$base_commit" --; then
+  git -C "$repo" diff --binary "$base_commit" -- |
+    git -C "$snapshot" apply --whitespace=nowarn -
+fi
+
+# git diff cannot carry untracked files, so reproduce them explicitly.
+while IFS= read -r -d '' file; do
+  mkdir -p "$snapshot/$(dirname -- "$file")"
+  cp -a "$repo/$file" "$snapshot/$file"
+done < <(git -C "$repo" ls-files --others --exclude-standard -z)
+
+compare_jobs() {
+  local before="$1"
+  local after="$2"
+  local output="$3"
+
+  jq -n \
+    --slurpfile before "$before" \
+    --slurpfile after "$after" \
+    '
+      # __job is an implementation detail added by the Nix tree walker.
+      def key: .attr | sub("[.]__job$"; "");
+      def state:
+        if has("drvPath") then
+          { kind: "drv", value: .drvPath }
+        else
+          { kind: "error", value: (.error | tostring) }
+        end;
+      def states($items):
+        reduce $items[] as $item ({}; .[$item | key] = ($item | state));
+
+      states($before) as $old
+      | states($after) as $new
+      | (($old | keys) + ($new | keys) | unique) as $keys
+      | {
+          changed: [
+            $keys[] as $attr
+            | select($new[$attr].kind == "drv" and $old[$attr] != $new[$attr])
+            | { attr: $attr, drvPath: $new[$attr].value }
+          ],
+          errors: [
+            $keys[] as $attr
+            | select($new[$attr].kind == "error" and $old[$attr] != $new[$attr])
+            | { attr: $attr, error: $new[$attr].value }
+          ],
+          removed: [
+            $keys[] as $attr
+            | select($old[$attr] != null and $new[$attr] == null)
+            | $attr
+          ]
+        }
+    ' > "$output"
+}
+
+job_paths() {
+  local jobs="$1"
+  local comparison="$2"
+  local output="$3"
+
+  jq -r -n \
+    --slurpfile jobs "$jobs" \
+    --slurpfile comparison "$comparison" \
+    '
+      ($comparison[0].changed | map(.attr)) as $wanted
+      | $jobs[]
+      | select(has("drvPath"))
+      | (.attr | sub("[.]__job$"; "")) as $attr
+      | select($wanted | index($attr))
+      | [$attr, .drvPath]
+      | @tsv
+    ' > "$output"
+}
+
+realise_jobs() {
+  local label="$1"
+  local jobs="$2"
+  local attr drv_path
+  local -a drv_paths=()
+
+  [[ -s "$jobs" ]] || return
+  printf 'Building %s:\n' "$label"
+  while IFS=$'\t' read -r attr drv_path; do
+    [[ -n "$attr" ]] || continue
+    printf '  %s\n' "$attr"
+    drv_paths+=("$drv_path")
+  done < "$jobs"
+
+  (( ${#drv_paths[@]} > 0 )) || return
+  "$nix_store" --realise "${drv_paths[@]}"
+}
+
+total_changed=0
+
+for system in "${systems[@]}"; do
+  current="$tmpdir/after-$system.jsonl"
+  comparison="$tmpdir/comparison-$system.json"
+
+  printf 'Evaluating modified tests for %s\n' "$system"
+  evaluate_jobs test "$system" "$current"
+  compare_jobs "$tmpdir/before-$system.jsonl" "$current" "$comparison"
+
+  error_count=$(jq '.errors | length' "$comparison")
+  if (( error_count > 0 )); then
+    jq -r --arg system "$system" \
+      '.errors[] | "New evaluation error for \($system) \(.attr):\n\(.error)"' \
+      "$comparison" >&2
+    exit 1
+  fi
+
+  changed_for_system=$(jq '.changed | length' "$comparison")
+  removed_for_system=$(jq '.removed | length' "$comparison")
+  total_changed=$((total_changed + changed_for_system))
+
+  printf 'Affected tests for %s: %d\n' "$system" "$changed_for_system"
+  jq -r '.changed[].attr | "  \(.)"' "$comparison"
+  if (( removed_for_system > 0 )); then
+    printf 'Removed tests for %s: %d\n' "$system" "$removed_for_system"
+    jq -r '.removed[] | "  \(.)"' "$comparison"
+  fi
+
+  if [[ "$list_only" == true ]] || (( changed_for_system == 0 )); then
+    continue
+  fi
+
+  driver_jobs="$tmpdir/drivers-$system.jsonl"
+  driver_paths="$tmpdir/driver-paths-$system"
+  evaluate_jobs driver "$system" "$driver_jobs"
+  job_paths "$driver_jobs" "$comparison" "$driver_paths"
+
+  if [[ "$(wc -l < "$driver_paths" | tr -d ' ')" -ne "$changed_for_system" ]]; then
+    die "Could not resolve every affected driver for $system"
+  fi
+  realise_jobs "$system test drivers" "$driver_paths"
+
+  if [[ "$drivers_only" == false ]]; then
+    test_paths="$tmpdir/test-paths-$system"
+    job_paths "$current" "$comparison" "$test_paths"
+    realise_jobs "$system tests" "$test_paths"
+  fi
+done
+
+if (( total_changed == 0 )); then
+  die "No affected NixOS tests found"
+fi

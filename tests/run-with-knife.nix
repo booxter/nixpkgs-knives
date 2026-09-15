@@ -8,6 +8,7 @@
 
 {
   name,
+  group,
   knife,
   fixture,
   files,
@@ -35,7 +36,7 @@ runCommand "test-${name}"
     export NIXOS_TESTS_DIR="$PWD/work/nixos/tests"
     export NIXPKGS_KNIVES_CHANGED_FILE="$PWD/changed"
 
-    ${cut}/bin/cut ${lib.escapeShellArg knife} > first-run.log
+    ${cut}/bin/cut --group ${lib.escapeShellArg group} ${lib.escapeShellArg knife} > first-run.log
     test "$(head -n 1 first-run.log)" = ${lib.escapeShellArg "Found ${toString expectedCandidates} candidates"}
     ${
       if expectedCandidates == 0 then
@@ -67,7 +68,7 @@ runCommand "test-${name}"
     }
 
     rm -f "$NIXPKGS_KNIVES_CHANGED_FILE"
-    ${cut}/bin/cut ${lib.escapeShellArg knife} > second-run.log
+    ${cut}/bin/cut --group ${lib.escapeShellArg group} ${lib.escapeShellArg knife} > second-run.log
     test "$(head -n 1 second-run.log)" = "Found 0 candidates"
     test ! -e "$NIXPKGS_KNIVES_CHANGED_FILE"
 

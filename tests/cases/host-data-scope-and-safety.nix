@@ -1,6 +1,6 @@
 {
   name = "host-data-scope-and-safety";
-  knife = "nixos-test-host-data";
+  knife = "test-host-data";
   fixture = "nixpkgs-master-2026-09-12";
   files = [
     "nixos/tests/containers-imperative.nix"

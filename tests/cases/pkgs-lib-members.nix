@@ -1,6 +1,6 @@
 {
   name = "pkgs-lib-members";
-  knife = "nixos-test-pkgs-lib";
+  knife = "test-pkgs-lib";
   fixture = "nixpkgs-master-2026-09-12";
   files = [
     "nixos/tests/frr.nix"

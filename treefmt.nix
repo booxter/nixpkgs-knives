@@ -8,8 +8,10 @@
     external-sources = true;
     includes = [
       "*.sh"
-      "bin/*"
       "cut"
+      "groups/*/bin/*"
+      "groups/*/verify"
+      "verify"
     ];
     source-path = "SCRIPTDIR";
   };

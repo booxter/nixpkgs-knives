@@ -1,8 +1,8 @@
 { runCommand }:
 
 let
-  selectTest = import ../nix/select-nixos-test-job.nix { mode = "test"; };
-  selectDriver = import ../nix/select-nixos-test-job.nix { mode = "driver"; };
+  selectTest = import ../groups/nixos/nix/select-nixos-test-job.nix { mode = "test"; };
+  selectDriver = import ../groups/nixos/nix/select-nixos-test-job.nix { mode = "driver"; };
 
   driver = runCommand "test-driver" { } "touch $out";
   testBase = runCommand "nixos-test" { } "touch $out";

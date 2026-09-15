@@ -1,6 +1,6 @@
 {
   name = "unused-root-pkgs-safety";
-  knife = "nixos-test-unused-root-pkgs";
+  knife = "test-unused-root-pkgs";
   fixture = "nixpkgs-master-2026-09-12";
   files = [
     "nixos/tests/bees.nix"

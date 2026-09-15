@@ -1,6 +1,6 @@
 {
   name = "maintainers-iosched";
-  knife = "nixos-test-maintainers";
+  knife = "test-maintainers";
   fixture = "nixpkgs-master-2026-09-12";
   files = [ "nixos/tests/iosched.nix" ];
   expectedCandidates = 1;

@@ -2,13 +2,65 @@
 
 set -euo pipefail
 
-if [[ -n "${NIXPKGS_KNIVES_DIR:-}" ]]; then
-  knives_dir="$NIXPKGS_KNIVES_DIR"
+if [[ -n "${NIXPKGS_KNIVES_GROUPS_DIR:-}" ]]; then
+  groups_dir="$NIXPKGS_KNIVES_GROUPS_DIR"
 else
   cut_dir="${BASH_SOURCE[0]%/*}"
   [[ "$cut_dir" != "${BASH_SOURCE[0]}" ]] || cut_dir=.
   cut_dir="$(cd -- "$cut_dir" && pwd)"
-  knives_dir="$cut_dir/bin"
+  groups_dir="$cut_dir/groups"
+fi
+
+usage() {
+  echo "Usage: cut --group GROUP [KNIFE | --all | --maniac]"
+}
+
+list_groups() {
+  local directory
+
+  echo "Available groups:"
+  for directory in "$groups_dir"/*; do
+    [[ -d "$directory/bin" ]] || continue
+    printf '  %s\n' "${directory##*/}"
+  done
+}
+
+die() {
+  printf '%s\n' "$*" >&2
+  exit 2
+}
+
+if (( $# == 0 )); then
+  usage >&2
+  list_groups >&2
+  exit 2
+fi
+
+case "$1" in
+  --group)
+    (( $# >= 2 )) || die "--group requires a name"
+    group="$2"
+    shift 2
+    ;;
+  -h | --help)
+    usage
+    list_groups
+    exit
+    ;;
+  *)
+    die "Expected --group as the first argument"
+    ;;
+esac
+
+case "$group" in
+  */* | "") die "Invalid group name: $group" ;;
+esac
+
+knives_dir="$groups_dir/$group/bin"
+if [[ ! -d "$knives_dir" ]]; then
+  printf 'Unknown knife group: %s\n' "$group" >&2
+  list_groups >&2
+  exit 2
 fi
 
 list_knives() {
@@ -55,6 +107,12 @@ run_maniac() {
 if (( $# == 0 )); then
   list_knives
   exit 0
+fi
+
+if [[ "$1" == -h || "$1" == --help ]]; then
+  usage
+  list_knives
+  exit
 fi
 
 knife_name="$1"

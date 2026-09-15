@@ -6,13 +6,14 @@ parse-check every changed Nix file.
 Run from the root of a Nixpkgs checkout:
 
 ```console
-nix run /path/to/nixpkgs-knives#cut
-nix run /path/to/nixpkgs-knives#cut -- nixos-test-system-packages
+nix run /path/to/nixpkgs-knives#cut -- --group nixos
+nix run /path/to/nixpkgs-knives#cut -- --group nixos test-system-packages
 ```
 
-With no knife name, cut lists the available knives. Use `--all` to run each
-knife once, or `--maniac` to repeat all knives until they stop making changes
-(at most ten passes). Review the resulting `git diff` before committing.
+The group is required. With no knife name, cut lists that group's available
+knives. Use `--all` to run each knife once, or `--maniac` to repeat them until
+they stop making changes (at most ten passes). Review the resulting `git diff`
+before committing.
 
 Run the checks with:
 
@@ -23,7 +24,7 @@ nix flake check
 To discover and run NixOS tests affected by the current diff:
 
 ```console
-nix run /path/to/nixpkgs-knives#verify
+nix run /path/to/nixpkgs-knives#verify -- --group nixos
 ```
 
 Use `--list` to only show affected tests, `--drivers-only` to stop after

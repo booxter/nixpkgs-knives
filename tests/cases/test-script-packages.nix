@@ -1,6 +1,6 @@
 {
   name = "test-script-packages";
-  knife = "nixos-test-test-script-packages";
+  knife = "test-test-script-packages";
   fixture = "nixpkgs-master-2026-09-12";
   files = [
     "nixos/tests/activation/nixos-init.nix"

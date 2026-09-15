@@ -1,6 +1,6 @@
 {
   name = "system-packages-ax25";
-  knife = "nixos-test-system-packages";
+  knife = "test-system-packages";
   fixture = "nixpkgs-master-2026-09-12";
   files = [ "nixos/tests/ax25.nix" ];
   expectedCandidates = 1;
