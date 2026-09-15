@@ -127,6 +127,7 @@ nixos_test_root_arg_location() {
 nixos_test_add_root_arg() {
   local file="$1"
   local argument="$2"
+  local declaration="${3:-$argument}"
   local location line column
 
   nixos_test_has_root_arg "$file" "$argument" && return
@@ -135,7 +136,7 @@ nixos_test_add_root_arg() {
   read -r line column <<< "$location"
 
   # Insert before pkgs. Preserve single-line and multiline argument layouts.
-  TARGET_LINE="$line" TARGET_COLUMN="$column" ARGUMENT="$argument" perl -i -pe '
+  TARGET_LINE="$line" TARGET_COLUMN="$column" DECLARATION="$declaration" perl -i -pe '
     next unless $. == $ENV{TARGET_LINE};
 
     my $column = $ENV{TARGET_COLUMN};
@@ -147,9 +148,9 @@ nixos_test_add_root_arg() {
       unless $formal eq "pkgs";
 
     if ($before =~ /^(\s*)$/) {
-      $_ = $before . $ENV{ARGUMENT} . ",\n" . $before . $formal . $after;
+      $_ = $before . $ENV{DECLARATION} . ",\n" . $before . $formal . $after;
     } else {
-      $_ = $before . $ENV{ARGUMENT} . ", " . $formal . $after;
+      $_ = $before . $ENV{DECLARATION} . ", " . $formal . $after;
     }
   ' "$file"
 }

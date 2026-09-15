@@ -18,9 +18,20 @@ is_candidate() {
 
 migrate_file() {
   local file="$1"
+  local has_custom_args=false
+
+  if ! nixos_test_has_expected_root_args "$file"; then
+    has_custom_args=true
+  fi
 
   nixos_test_apply_rule nixos-test-host-data-pkgs "$file"
-  nixos_test_reconcile_root_pkgs "$file" hostPkgs
+  if [[ "$has_custom_args" == true ]]; then
+    # This may be a legacy function called before runTest. Such callers pass
+    # pkgs but do not know about the test module's hostPkgs argument.
+    nixos_test_add_root_arg "$file" hostPkgs "hostPkgs ? pkgs"
+  else
+    nixos_test_reconcile_root_pkgs "$file" hostPkgs
+  fi
 }
 
 nixos_test_run is_candidate migrate_file

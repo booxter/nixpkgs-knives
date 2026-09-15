@@ -36,3 +36,29 @@
  
    region = "ap-northeast-1";
    sharedConfigurationDefaultProfile = "default";
+--- a/nixos/tests/etcd/multi-node.nix
++++ b/nixos/tests/etcd/multi-node.nix
+@@ -1,4 +1,4 @@
+-{ pkgs, etcd, ... }:
++{ hostPkgs ? pkgs, pkgs, etcd, ... }:
+ 
+ let
+   runWithOpenSSL =
+@@ -46,7 +46,7 @@
+       -extfile ${client_openssl_cnf}
+   '';
+ 
+-  openssl_cnf = pkgs.writeText "openssl.cnf" ''
++  openssl_cnf = hostPkgs.writeText "openssl.cnf" ''
+     ions = v3_req
+     distinguished_name = req_distinguished_name
+     [req_distinguished_name]
+@@ -62,7 +62,7 @@
+     IP.1 = 127.0.0.1
+   '';
+ 
+-  client_openssl_cnf = pkgs.writeText "client-openssl.cnf" ''
++  client_openssl_cnf = hostPkgs.writeText "client-openssl.cnf" ''
+     ions = v3_req
+     distinguished_name = req_distinguished_name
+     [req_distinguished_name]

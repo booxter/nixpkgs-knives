@@ -5,7 +5,8 @@
   files = [
     "nixos/tests/containers-imperative.nix"
     "nixos/tests/amazon-cloudwatch-agent.nix"
+    "nixos/tests/etcd/multi-node.nix"
   ];
-  expectedCandidates = 2;
+  expectedCandidates = 3;
   expectedDiff = ../expected/host-data-scope-and-safety.diff;
 }
